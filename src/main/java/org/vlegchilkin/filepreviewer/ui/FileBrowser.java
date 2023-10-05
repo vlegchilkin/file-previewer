@@ -8,6 +8,7 @@ import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.ImagePreview;
 import org.vlegchilkin.filepreviewer.ui.preview.TextPreview;
 
+import javax.annotation.Nonnull;
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
@@ -75,7 +76,7 @@ class FileBrowser extends JFileChooser {
         }
 
         @Override
-        public Icon getIcon(File f) {
+        public Icon getIcon(@Nonnull File f) {
             if (f instanceof TFile && ((TFile) f).isArchive()) {
                 return ArchiveFileView.archiveIcon;
             }

@@ -35,9 +35,8 @@ public class MainFrame extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         switch (e.getActionCommand()) {
-            case JFileChooser.CANCEL_SELECTION -> {
-                dispatchEvent(new WindowEvent(MainFrame.this, WindowEvent.WINDOW_CLOSING));
-            }
+            case JFileChooser.CANCEL_SELECTION ->
+                    dispatchEvent(new WindowEvent(MainFrame.this, WindowEvent.WINDOW_CLOSING));
             case JFileChooser.APPROVE_SELECTION -> {
                 PreviewDialog dialog = buildPreviewDialog(this.fileBrowser.getSelectedFile());
                 if (dialog != null) {
@@ -52,7 +51,7 @@ public class MainFrame extends JFrame implements ActionListener {
         final PreviewDialog dialog;
         if (ImagePreview.EXTENSIONS.contains(fileExtension)) {
             dialog = new ImagePreview(this, selectedFile);
-        } else if  (TextPreview.EXTENSIONS.contains(fileExtension)) {
+        } else if (TextPreview.EXTENSIONS.contains(fileExtension)) {
             dialog = new TextPreview(this, selectedFile);
         } else {
             dialog = null;
