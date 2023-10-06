@@ -2,6 +2,9 @@ package org.vlegchilkin.filepreviewer.ui.preview;
 
 import org.vlegchilkin.filepreviewer.Main;
 
+/**
+ * Base business logic exception for preview dialogs.
+ */
 public class PreviewException extends Exception {
     public enum ErrorCode {
         SIZE_LIMIT("preview.image.message.size.limit"),

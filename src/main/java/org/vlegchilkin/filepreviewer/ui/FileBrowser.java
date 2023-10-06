@@ -19,6 +19,10 @@ import java.util.Objects;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+/**
+ * The main app component written based on the JFileChooser.
+ * Uses read-only mode and hides the file-name text field.
+ */
 class FileBrowser extends JFileChooser {
     private static final String APPROVE_BUTTON_TEXT = Main.PROPERTIES.getString("filebrowser.approve.button.text");
     private static final String CANCEL_BUTTON_TEXT = Main.PROPERTIES.getString("filebrowser.cancel.button.text");

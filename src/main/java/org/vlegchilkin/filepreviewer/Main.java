@@ -8,6 +8,9 @@ import org.vlegchilkin.filepreviewer.ui.MainFrame;
 import javax.swing.*;
 import java.util.ResourceBundle;
 
+/**
+ * App entry point
+ */
 public class Main {
     final static Logger log = LoggerFactory.getLogger(Main.class);
     public final static ResourceBundle PROPERTIES = ResourceBundle.getBundle("filepreviewer");

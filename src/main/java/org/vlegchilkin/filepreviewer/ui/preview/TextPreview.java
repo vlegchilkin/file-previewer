@@ -8,6 +8,12 @@ import java.awt.*;
 import java.io.*;
 import java.util.List;
 
+/**
+ * Preview dialog for text files.
+ * Supported extensions and preview max length are defined in the 'preview.text.*' properties.
+ * uses AWT for loading images with fallback to slow ImageIO in case of awt failure (some rare png crc issues).
+ */
+
 public class TextPreview extends PreviewDialog {
     public static final java.util.List<String> EXTENSIONS = List.of(
             Main.PROPERTIES.getString("preview.text.extensions").split(",")

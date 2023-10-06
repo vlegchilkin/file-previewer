@@ -13,6 +13,11 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
 import java.io.File;
 
+/**
+ * Application's main frame.
+ * Contains only FileBrowser component, starts at the middle of a screen with a preferred size 800 x 600.
+ * Responsible for actions - shows image/text preview dialogs according to the selected file extension.
+ */
 public class MainFrame extends JFrame implements ActionListener {
     private static final int DEFAULT_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.width"));
     private static final int DEFAULT_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.height"));

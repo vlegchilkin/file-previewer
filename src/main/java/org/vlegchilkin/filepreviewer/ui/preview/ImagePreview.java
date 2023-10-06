@@ -12,6 +12,12 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 
+/**
+ * Preview dialog for images.
+ * Supported extensions are defined in the 'preview.image.extensions' property.
+ * View area size and file max size are also defined in the 'preview.image.*' properties.
+ * uses AWT for loading images with fallback to slow ImageIO in case of awt failure (some rare png crc issues).
+ */
 public class ImagePreview extends PreviewDialog {
     public static final List<String> EXTENSIONS = List.of(Main.PROPERTIES.getString("preview.image.extensions").split(","));
     private static final int AREA_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("preview.image.area.width"));

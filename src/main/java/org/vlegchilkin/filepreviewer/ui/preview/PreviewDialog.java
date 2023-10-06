@@ -11,11 +11,15 @@ import java.awt.event.*;
 import java.io.File;
 import java.util.Optional;
 
+/**
+ * Base class for preview dialogs, responsible for a common window/buttons/actions part.
+ * Handles exception cases.
+ */
 public abstract class PreviewDialog extends JDialog implements ActionListener {
     final static Logger log = LoggerFactory.getLogger(PreviewDialog.class);
     private static final int MIN_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("preview.min.width"));
     private static final int MIN_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("preview.min.height"));
-    static final String CLOSE_BUTTON_TEXT = Main.PROPERTIES.getString("preview.close.button.text");
+    private static final String CLOSE_BUTTON_TEXT = Main.PROPERTIES.getString("preview.close.button.text");
 
     public PreviewDialog(Frame owner, File file) {
         super(owner, buildDefaultTitle(file), true);
@@ -30,12 +34,12 @@ public abstract class PreviewDialog extends JDialog implements ActionListener {
         dialogContainer.add(buttonPanel, BorderLayout.SOUTH);
 
         KeyStroke stroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
-        rootPane.registerKeyboardAction(this, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
+        this.rootPane.registerKeyboardAction(this, stroke, JComponent.WHEN_IN_FOCUSED_WINDOW);
 
         JButton closeButton = new JButton(PreviewDialog.CLOSE_BUTTON_TEXT);
         closeButton.addActionListener(this);
         buttonPanel.add(closeButton);
-        rootPane.setDefaultButton(closeButton);
+        this.rootPane.setDefaultButton(closeButton);
 
         Optional<String> error;
         try {
