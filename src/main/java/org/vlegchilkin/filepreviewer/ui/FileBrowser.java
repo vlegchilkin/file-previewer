@@ -22,6 +22,7 @@ import java.util.TreeMap;
 /**
  * The main app component written based on the JFileChooser.
  * Uses read-only mode and hides the file-name text field.
+ * Uses <a href="http://truevfs.net">TrueVFS</a> library to support walk through archive files (zip)
  */
 class FileBrowser extends JFileChooser {
     private static final String APPROVE_BUTTON_TEXT = Main.PROPERTIES.getString("filebrowser.approve.button.text");
