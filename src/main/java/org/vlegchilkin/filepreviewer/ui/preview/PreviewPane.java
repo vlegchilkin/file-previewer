@@ -33,11 +33,9 @@ public class PreviewPane extends JSplitPane implements PropertyChangeListener {
         switch (evt.getPropertyName()) {
             case JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, JFileChooser.DIRECTORY_CHANGED_PROPERTY -> {
                 File file = (File) evt.getNewValue();
-                var previewBuilder = makeBuilder(file);
+                PreviewBuilder previewBuilder = makeBuilder(file);
 
-                int width = getTopComponent().getWidth();
-                int height = getTopComponent().getHeight();
-                setTopComponent(previewBuilder.buildContentView(width, height));
+                setTopComponent(previewBuilder.buildContentView());
                 setBottomComponent(previewBuilder.buildMetadataView());
             }
         }

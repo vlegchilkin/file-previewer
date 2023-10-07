@@ -25,7 +25,7 @@ public class UnsupportedPreviewBuilder extends PreviewBuilder {
     }
 
     @Override
-    public JComponent buildContentView(int areaWidth, int areaHeight) {
+    public JComponent buildContentView() {
         return new JLabel(this.text, null, SwingConstants.CENTER);
     }
 

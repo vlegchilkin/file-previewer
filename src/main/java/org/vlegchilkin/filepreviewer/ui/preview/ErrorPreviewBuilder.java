@@ -14,7 +14,7 @@ public class ErrorPreviewBuilder extends PreviewBuilder {
     }
 
     @Override
-    public JComponent buildContentView(int areaWidth, int areaHeight) {
+    public JComponent buildContentView() {
         return new JLabel(this.previewException.getMessage(), null, SwingConstants.CENTER);
     }
 

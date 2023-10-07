@@ -44,7 +44,7 @@ public class ImagePreviewBuilder extends PreviewBuilder {
     }
 
     @Override
-    public JComponent buildContentView(int areaWidth, int areaHeight) {
+    public JComponent buildContentView() {
         return new ImagePanel(this.image);
     }
 

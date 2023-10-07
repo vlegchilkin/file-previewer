@@ -21,7 +21,7 @@ public class PreviewBuilder {
         return metadata;
     }
 
-    public JComponent buildContentView(int areaWidth, int areaHeight) {
+    public JComponent buildContentView() {
         return new JLabel();
     }
     public JComponent buildMetadataView() {

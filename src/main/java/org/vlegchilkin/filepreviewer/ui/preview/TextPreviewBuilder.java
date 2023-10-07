@@ -51,7 +51,7 @@ public class TextPreviewBuilder extends PreviewBuilder {
     }
 
     @Override
-    public JComponent buildContentView(int areaWidth, int areaHeight) {
+    public JComponent buildContentView() {
         JTextArea textArea = new JTextArea(this.text);
         textArea.setEditable(false);
         return new JScrollPane(textArea);
