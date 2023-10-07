@@ -7,19 +7,16 @@ import org.vlegchilkin.filepreviewer.Main;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
+import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
 
 /**
  * Preview Builder for images.
  * File max size is defined in the 'preview.image.max.size' property.
- * uses AWT for loading images with fallback to slow ImageIO in case of awt failure (some rare png crc issues).
  */
 public class ImagePreviewBuilder extends PreviewBuilder {
     private static final int MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.max.size"));
-
-    private final ImageIcon imageIcon;
+    private final BufferedImage image;
 
     public ImagePreviewBuilder(File file, Metadata metadata) throws PreviewException {
         super(metadata);
@@ -28,11 +25,10 @@ public class ImagePreviewBuilder extends PreviewBuilder {
                     PreviewException.ErrorCode.SIZE_LIMIT, FileUtils.byteCountToDisplaySize(MAX_SIZE)
             );
         }
-        ImageIcon image = loadImage(file);
+        this.image = loadImage(file);
         this.getMetadata().information().put(
-            "image.dimensions", "%d x %d".formatted(image.getIconWidth(), image.getIconHeight())
+                "image.dimensions", "%d x %d".formatted(image.getWidth(), image.getHeight())
         );
-        this.imageIcon = image;
     }
 
     /**
@@ -47,56 +43,53 @@ public class ImagePreviewBuilder extends PreviewBuilder {
 
     @Override
     public JComponent buildContentView(int areaWidth, int areaHeight) {
-        Icon icon = scaleIcon(this.imageIcon, areaWidth, areaHeight);
-        return new JLabel("", icon, SwingConstants.CENTER);
+        return new ImagePanel(this.image);
     }
 
-    private static ImageIcon scaleIcon(ImageIcon imageIcon, int areaWidth, int areaHeight) {
-        if (areaWidth < 16 || areaHeight < 16) {
-            areaWidth = areaHeight = 16;
-        }
-        var scale = Math.max(
-                imageIcon.getIconWidth() / (float) (areaWidth),
-                imageIcon.getIconHeight() / (float) (areaHeight)
-        );
+    static class ImagePanel extends JPanel {
+        private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
 
-        final ImageIcon result;
-        if (scale > 1) {
-            int scaledWidth = Math.round(imageIcon.getIconWidth() / scale);
-            Image scaledImage = imageIcon.getImage().getScaledInstance(scaledWidth, -1, Image.SCALE_FAST);
-            result = new ImageIcon(scaledImage);
-        } else {
-            result = imageIcon;
+        private final BufferedImage image;
+
+        public ImagePanel(BufferedImage image) {
+            this.image = image;
+
         }
 
-        return result;
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Rectangle bounds = g.getClipBounds();
+            if (bounds.height < ImagePanel.MIN_PIXELS || bounds.width < ImagePanel.MIN_PIXELS) {
+                return;
+            }
+
+            var scale = (float) Math.max(
+                    image.getWidth() / bounds.getWidth(),
+                    image.getHeight() / bounds.getHeight()
+            );
+
+            final int width, height;
+            if (scale > 1) {
+                width = Math.round(image.getWidth() / scale);
+                height = Math.round(image.getHeight() / scale);
+            } else {
+                width = image.getWidth();
+                height = image.getHeight();
+            }
+
+            int x = (bounds.width - width) / 2;
+            int y = (bounds.height - height) / 2;
+            g.drawImage(image, x, y, width, height, null);
+        }
     }
 
-    private static ImageIcon loadImage(File file) throws PreviewException {
+
+    private static BufferedImage loadImage(File file) throws PreviewException {
         try (TFileInputStream is = new TFileInputStream(file)) {
-            byte[] data = is.readAllBytes();
-            return buildImage(data);
-        } catch (IOException e) {
+            return ImageIO.read(is);
+        } catch (Exception e) {
             throw new PreviewException(e, PreviewException.ErrorCode.UNABLE_TO_LOAD);
         }
-    }
-
-    /**
-     * Build an image using AWT first with fallback to javax.imageio
-     */
-    private static ImageIcon buildImage(byte[] data) throws IOException {
-        ImageIcon imageIcon = new ImageIcon(data);
-        if (imageIcon.getImageLoadStatus() != MediaTracker.COMPLETE || imageIcon.getIconWidth() < 0) {
-            imageIcon = buildImageFallback(data);
-        }
-        return imageIcon;
-    }
-
-    /**
-     * sometimes AWT doesn't build an image because of crc corruption or other reasons
-     * so this is a fallback via slow javax.imageio
-     */
-    private static ImageIcon buildImageFallback(byte[] data) throws IOException {
-        return new ImageIcon(ImageIO.read(new ByteArrayInputStream(data)));
     }
 }
