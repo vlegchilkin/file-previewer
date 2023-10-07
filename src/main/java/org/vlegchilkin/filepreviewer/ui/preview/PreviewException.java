@@ -3,13 +3,13 @@ package org.vlegchilkin.filepreviewer.ui.preview;
 import org.vlegchilkin.filepreviewer.Main;
 
 /**
- * Base business logic exception for preview dialogs.
+ * Base business logic exception.
  */
 public class PreviewException extends Exception {
     public enum ErrorCode {
-        SIZE_LIMIT("preview.image.message.size.limit"),
-        UNABLE_TO_LOAD("preview.image.message.unable.to.load"),
-        UNKNOWN_ERROR("preview.image.message.unknown.error");
+        SIZE_LIMIT("preview.exception.size.limit"),
+        UNABLE_TO_LOAD("preview.exception.unable.to.load"),
+        UNKNOWN_ERROR("preview.exception.unknown.error");
         private final String messageTemplate;
 
         ErrorCode(String alias) {

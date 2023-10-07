@@ -1,37 +1,31 @@
 package org.vlegchilkin.filepreviewer.ui;
 
-import org.apache.commons.io.FilenameUtils;
 import org.vlegchilkin.filepreviewer.Main;
-import org.vlegchilkin.filepreviewer.ui.preview.ImagePreview;
-import org.vlegchilkin.filepreviewer.ui.preview.PreviewDialog;
-import org.vlegchilkin.filepreviewer.ui.preview.TextPreview;
 
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
-import java.io.File;
 
 /**
  * Application's main frame.
- * Contains only FileBrowser component, starts at the middle of a screen with a preferred size 800 x 600.
- * Responsible for actions - shows image/text preview dialogs according to the selected file extension.
+ * Contains only FileBrowser component, starts at the middle of a screen with a min/preferred size 800 x 500.
  */
 public class MainFrame extends JFrame implements ActionListener {
     private static final int DEFAULT_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.width"));
     private static final int DEFAULT_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.height"));
     private static final String TITLE = Main.PROPERTIES.getString("mainframe.title");
-    private final FileBrowser fileBrowser;
 
 
     public MainFrame() throws HeadlessException {
         super(MainFrame.TITLE);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setMinimumSize(new Dimension(MainFrame.DEFAULT_WIDTH, MainFrame.DEFAULT_HEIGHT));
         setPreferredSize(new Dimension(MainFrame.DEFAULT_WIDTH, MainFrame.DEFAULT_HEIGHT));
 
-        this.fileBrowser = (FileBrowser) add(new FileBrowser());
-        this.fileBrowser.addActionListener(this);
+        FileBrowser fb = (FileBrowser) add(new FileBrowser());
+        fb.addActionListener(this);
 
         pack();
         setLocationRelativeTo(null);
@@ -39,28 +33,9 @@ public class MainFrame extends JFrame implements ActionListener {
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        switch (e.getActionCommand()) {
-            case JFileChooser.CANCEL_SELECTION ->
-                    dispatchEvent(new WindowEvent(MainFrame.this, WindowEvent.WINDOW_CLOSING));
-            case JFileChooser.APPROVE_SELECTION -> {
-                PreviewDialog dialog = buildPreviewDialog(this.fileBrowser.getSelectedFile());
-                if (dialog != null) {
-                    dialog.setVisible(true);
-                }
-            }
+        if (e.getActionCommand().equals(JFileChooser.CANCEL_SELECTION)) {
+            dispatchEvent(new WindowEvent(MainFrame.this, WindowEvent.WINDOW_CLOSING));
         }
     }
 
-    private PreviewDialog buildPreviewDialog(File selectedFile) {
-        String fileExtension = FilenameUtils.getExtension(selectedFile.getName()).toLowerCase();
-        final PreviewDialog dialog;
-        if (ImagePreview.EXTENSIONS.contains(fileExtension)) {
-            dialog = new ImagePreview(this, selectedFile);
-        } else if (TextPreview.EXTENSIONS.contains(fileExtension)) {
-            dialog = new TextPreview(this, selectedFile);
-        } else {
-            dialog = null;
-        }
-        return dialog;
-    }
 }
