@@ -24,40 +24,41 @@ public record Metadata(String fileName, long fileSize, String mimeType, Informat
         if (file == null || !file.isFile()) {
             return null;
         }
-        String contentType = null;
+        String mimeType = null;
         try {
-            contentType = Files.probeContentType(file.toPath());
+            mimeType = Files.probeContentType(file.toPath());
         } catch (IOException e) {
             PreviewPane.log.warn("Can't recognize content type for file {}", file, e);
         }
 
-        return new Metadata(file.getName(), file.length(), contentType, buildInformation(file));
+        return new Metadata(file.getName(), file.length(), mimeType, Information.of(file));
     }
 
-    private static Information buildInformation(File file) {
-        final Information result = new Information();
-
-        BasicFileAttributes attributes = null;
-        try {
-            attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
-        } catch (IOException e) {
-            PreviewPane.log.warn("Can't get file attributes for file {}", file, e);
-        }
-
-        Optional.ofNullable(attributes).ifPresent(attr -> {
-            result.putIfDefined("file.creation.time", attr.creationTime());
-            result.putIfDefined("file.last.modified.time", attr.lastModifiedTime());
-            result.putIfDefined("file.last.access.time", attr.lastAccessTime());
-        });
-
-        return result;
-    }
 
     /**
      * Additional information, sorted map that metadata view uses for information section.
      */
     public static class Information extends LinkedHashMap<String, Object> {
         private static final DateTimeFormatter FILETIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
+
+        private static Information of(File file) {
+            final Information result = new Information();
+
+            BasicFileAttributes attributes = null;
+            try {
+                attributes = Files.readAttributes(file.toPath(), BasicFileAttributes.class);
+            } catch (IOException e) {
+                PreviewPane.log.warn("Can't get file attributes for file {}", file, e);
+            }
+
+            Optional.ofNullable(attributes).ifPresent(attr -> {
+                result.putIfDefined("file.creation.time", attr.creationTime());
+                result.putIfDefined("file.last.modified.time", attr.lastModifiedTime());
+                result.putIfDefined("file.last.access.time", attr.lastAccessTime());
+            });
+
+            return result;
+        }
 
         public void putIfDefined(String key, FileTime fileTime) {
             if (fileTime.toMillis() > 0) {

@@ -44,13 +44,12 @@ public class PreviewPane extends JSplitPane implements PropertyChangeListener {
 
     private static PreviewFactory makePreviewFactory(File file) {
         Metadata metadata = Metadata.of(file);
-        if (metadata == null) {
-            return new MetadataPreviewFactory(null);
-        }
 
-        MetadataPreviewFactory preview;
+        PreviewFactory preview;
         try {
-            if (ImagePreviewFactory.isSupported(metadata)) {
+            if (metadata == null) {
+                preview = new MetadataPreviewFactory(null);
+            }else if (ImagePreviewFactory.isSupported(metadata)) {
                 preview = new ImagePreviewFactory(file, metadata);
             } else if (TextPreviewFactory.isSupported(metadata)) {
                 preview = new TextPreviewFactory(file, metadata);
