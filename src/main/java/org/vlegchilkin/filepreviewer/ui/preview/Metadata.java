@@ -52,18 +52,18 @@ public record Metadata(String fileName, long fileSize, String mimeType, Informat
 
         return result;
     }
-}
 
-/**
- * Additional information, sorted map that metadata view uses for information section.
- */
-class Information extends LinkedHashMap<String, Object> {
-    private static final DateTimeFormatter FILETIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
+    /**
+     * Additional information, sorted map that metadata view uses for information section.
+     */
+    public static class Information extends LinkedHashMap<String, Object> {
+        private static final DateTimeFormatter FILETIME_FORMATTER = DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss");
 
-    public void putIfDefined(String key, FileTime fileTime) {
-        if (fileTime.toMillis() > 0) {
-            LocalDateTime localDateTime = fileTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-            put(key, localDateTime.format(FILETIME_FORMATTER));
+        public void putIfDefined(String key, FileTime fileTime) {
+            if (fileTime.toMillis() > 0) {
+                LocalDateTime localDateTime = fileTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
+                put(key, localDateTime.format(FILETIME_FORMATTER));
+            }
         }
     }
 }

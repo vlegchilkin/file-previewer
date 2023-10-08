@@ -3,6 +3,7 @@ package org.vlegchilkin.filepreviewer.ui.preview;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.vlegchilkin.filepreviewer.Main;
+import org.vlegchilkin.filepreviewer.ui.preview.view.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -33,34 +34,34 @@ public class PreviewPane extends JSplitPane implements PropertyChangeListener {
         switch (evt.getPropertyName()) {
             case JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, JFileChooser.DIRECTORY_CHANGED_PROPERTY -> {
                 File file = (File) evt.getNewValue();
-                PreviewBuilder previewBuilder = makeBuilder(file);
+                PreviewFactory previewFactory = makePreviewFactory(file);
 
-                setTopComponent(previewBuilder.buildContentView());
-                setBottomComponent(previewBuilder.buildMetadataView());
+                setTopComponent(previewFactory.createContentView());
+                setBottomComponent(previewFactory.createMetadataView());
             }
         }
     }
 
-    private static PreviewBuilder makeBuilder(File file) {
+    private static PreviewFactory makePreviewFactory(File file) {
         Metadata metadata = Metadata.of(file);
         if (metadata == null) {
-            return new PreviewBuilder(null);
+            return new MetadataPreviewFactory(null);
         }
 
-        PreviewBuilder preview;
+        MetadataPreviewFactory preview;
         try {
-            if (ImagePreviewBuilder.isSupported(metadata)) {
-                preview = new ImagePreviewBuilder(file, metadata);
-            } else if (TextPreviewBuilder.isSupported(metadata)) {
-                preview = new TextPreviewBuilder(file, metadata);
+            if (ImagePreviewFactory.isSupported(metadata)) {
+                preview = new ImagePreviewFactory(file, metadata);
+            } else if (TextPreviewFactory.isSupported(metadata)) {
+                preview = new TextPreviewFactory(file, metadata);
             } else {
-                preview = new UnsupportedPreviewBuilder(file, metadata);
+                preview = new UnsupportedPreviewFactory(file, metadata);
             }
         } catch (PreviewException e) {
-            preview = new ErrorPreviewBuilder(metadata, e);
+            preview = new ErrorPreviewFactory(metadata, e);
         } catch (Exception e) {
             log.error("Can't create a preview builder for the file {}", file, e);
-            preview = new ErrorPreviewBuilder(
+            preview = new ErrorPreviewFactory(
                     metadata,
                     new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR)
             );

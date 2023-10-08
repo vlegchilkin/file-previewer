@@ -1,8 +1,10 @@
-package org.vlegchilkin.filepreviewer.ui.preview;
+package org.vlegchilkin.filepreviewer.ui.preview.view;
 
 import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
 import org.vlegchilkin.filepreviewer.Main;
+import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
+import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -16,13 +18,13 @@ import java.io.IOException;
  * File max size is defined in the 'preview.image.max.size' property.
  * uses AWT for loading images with fallback to slow ImageIO in case of awt failure (some rare png crc issues).
  */
-public class ImagePreviewBuilder extends PreviewBuilder {
+public class ImagePreviewFactory extends MetadataPreviewFactory {
     private static final int MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.max.size"));
     private final ImageIcon image;
 
-    public ImagePreviewBuilder(File file, Metadata metadata) throws PreviewException {
+    public ImagePreviewFactory(File file, Metadata metadata) throws PreviewException {
         super(metadata);
-        if (file.length() > ImagePreviewBuilder.MAX_SIZE) {
+        if (file.length() > ImagePreviewFactory.MAX_SIZE) {
             throw new PreviewException(
                     PreviewException.ErrorCode.SIZE_LIMIT, FileUtils.byteCountToDisplaySize(MAX_SIZE)
             );
@@ -44,7 +46,7 @@ public class ImagePreviewBuilder extends PreviewBuilder {
     }
 
     @Override
-    public JComponent buildContentView() {
+    public JComponent createContentView() {
         return new ImagePanel(this.image);
     }
 

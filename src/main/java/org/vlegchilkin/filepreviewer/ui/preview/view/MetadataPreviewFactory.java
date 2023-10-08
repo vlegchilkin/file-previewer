@@ -1,8 +1,10 @@
-package org.vlegchilkin.filepreviewer.ui.preview;
+package org.vlegchilkin.filepreviewer.ui.preview.view;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.vlegchilkin.filepreviewer.Main;
+import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
+import org.vlegchilkin.filepreviewer.ui.preview.PreviewFactory;
 
 import javax.swing.*;
 import java.awt.*;
@@ -10,10 +12,10 @@ import java.awt.*;
 /**
  * Default Preview Builder with common metadata builder and an empty content builder.
  */
-public class PreviewBuilder {
+public class MetadataPreviewFactory implements PreviewFactory {
     private final Metadata metadata;
 
-    public PreviewBuilder(Metadata metadata) {
+    public MetadataPreviewFactory(Metadata metadata) {
         this.metadata = metadata;
     }
 
@@ -21,10 +23,10 @@ public class PreviewBuilder {
         return metadata;
     }
 
-    public JComponent buildContentView() {
+    public JComponent createContentView() {
         return new JLabel();
     }
-    public JComponent buildMetadataView() {
+    public JComponent createMetadataView() {
         return new MetadataView(getMetadata());
     }
 
