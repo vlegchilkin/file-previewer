@@ -3,8 +3,8 @@ package org.vlegchilkin.filepreviewer.ui.preview.loader;
 import net.java.truevfs.access.TFileReader;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
+import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 import org.vlegchilkin.filepreviewer.ui.preview.view.ResourceLoader;
-import org.vlegchilkin.filepreviewer.ui.preview.view.text.TextPreview;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -14,8 +14,8 @@ public class TextLoader extends ResourceLoader<String> {
             Main.PROPERTIES.getString("loader.text.text-max-length")
     );
 
-    public TextLoader(TextPreview textPreview) {
-        super(textPreview);
+    public TextLoader(Preview<String> owner) {
+        super(owner);
     }
 
     @Override
