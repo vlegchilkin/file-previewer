@@ -24,7 +24,7 @@ import java.util.TreeMap;
  * Uses read-only mode and hides the file-name text field.
  * Uses <a href="http://truevfs.net">TrueVFS</a> library to support walk through archive files (zip)
  */
-class FileBrowser extends JFileChooser {
+public class FileBrowser extends JFileChooser {
     private static final String ARCHIVE_ICON_FILE = Main.PROPERTIES.getString("filebrowser.archive.icon.file");
     private static final String ARCHIVES_SUPPORTED = Main.PROPERTIES.getString("filebrowser.archives.supported");
     public static final java.util.List<String> FILTER_IMAGE_EXTENSIONS = List.of(
@@ -71,8 +71,8 @@ class FileBrowser extends JFileChooser {
         return false;
     }
 
-    static class ArchiveFileView extends TFileView {
-        private final static Icon archiveIcon = new ImageIcon(
+    public static class ArchiveFileView extends TFileView {
+        public final static Icon archiveIcon = new ImageIcon(
                 Objects.requireNonNull(
                         ArchiveFileView.class.getClassLoader().getResource(FileBrowser.ARCHIVE_ICON_FILE)
                 )
