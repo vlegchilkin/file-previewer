@@ -2,8 +2,6 @@ package org.vlegchilkin.filepreviewer.ui.preview.view;
 
 import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
@@ -11,8 +9,6 @@ import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
 
 /**
  * Preview Builder for images.
@@ -50,36 +46,20 @@ public class ImagePreviewFactory extends MetadataPreviewFactory {
         return new ImagePreview();
     }
 
-    public class ImagePreview extends JLabel {
+    public class ImagePreview extends Preview<Image> {
         private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
-        public final static ImageIcon LOADER_ICON = new ImageIcon(
-                Objects.requireNonNull(
-                        ImagePreview.class.getClassLoader().getResource(
-                                Main.PROPERTIES.getString("preview.image.loader.icon.file")
-                        )
-                )
-        );
-        public final static ImageIcon ERROR_ICON = new ImageIcon(
-                Objects.requireNonNull(
-                        ImagePreview.class.getClassLoader().getResource(
-                                Main.PROPERTIES.getString("preview.image.error.icon.file")
-                        )
-                )
-        );
-        private final ImageLoader imageLoader;
         private Image image;
 
         public ImagePreview() {
-            super(null, LOADER_ICON, CENTER);
+            super();
             this.image = null;
-            this.imageLoader = new ImageLoader();
-            imageLoader.execute();
+            this.resourceLoader = new ImageLoader();
+            this.resourceLoader.execute();
         }
 
         @Override
         public void removeNotify() {
             super.removeNotify();
-            imageLoader.cancel(true);
             if (image != null) {
                 image.flush();
             }
@@ -110,7 +90,16 @@ public class ImagePreviewFactory extends MetadataPreviewFactory {
             g.drawImage(image, x, y, width, height, null);
         }
 
-        private class ImageLoader extends SwingWorker<Image, Void> {
+        @Override
+        protected JComponent build(Image resource) {
+            image = resource;
+            getMetadata().information().put(
+                    "image.dimensions", "%d x %d".formatted(image.getWidth(this), image.getHeight(this))
+            );
+            return new JLabel();
+        }
+
+        private class ImageLoader extends ResourceLoader {
             private final MediaTracker tracker = new MediaTracker(ImagePreview.this);
 
             @Override
@@ -134,34 +123,8 @@ public class ImagePreviewFactory extends MetadataPreviewFactory {
 
             @Override
             protected void done() {
-                PreviewException exception = null;
-                try {
-                    image = get();
-                    getMetadata().information().put(
-                            "image.dimensions", "%d x %d".formatted(
-                                    image.getWidth(null),
-                                    image.getHeight(null)
-                            )
-                    );
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof PreviewException) {
-                        exception = (PreviewException) cause;
-                    } else {
-                        exception = new PreviewException(e.getCause(), PreviewException.ErrorCode.UNKNOWN_ERROR);
-                    }
-                } catch (Exception e) {
-                    exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
-                }
+                super.done();
                 tracker.removeImage(image, 0);
-
-                if (exception != null) {
-                    setIcon(ERROR_ICON);
-                    setText(exception.getMessage());
-                } else {
-                    setIcon(null);
-                    setText("");
-                }
             }
         }
     }

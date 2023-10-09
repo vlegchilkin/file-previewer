@@ -6,9 +6,9 @@ import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
 import javax.swing.*;
-import java.awt.*;
-import java.io.*;
-import java.util.concurrent.ExecutionException;
+import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 
 /**
  * Preview Builder for text files.
@@ -36,27 +36,25 @@ public class TextPreviewFactory extends MetadataPreviewFactory {
     }
 
     @Override
-    public JComponent createContentView() {
+    public TextPreview createContentView() {
         return new TextPreview();
     }
 
-    class TextPreview extends JPanel {
-        private final TextLoader textLoader;
-
+    public class TextPreview extends Preview<String> {
         public TextPreview() {
-            super(new GridBagLayout());
-            add(new JLabel("", ImagePreviewFactory.ImagePreview.LOADER_ICON, JLabel.CENTER));
-            this.textLoader = new TextLoader();
-            this.textLoader.execute();
+            super();
+            this.resourceLoader = new TextLoader();
+            this.resourceLoader.execute();
         }
 
         @Override
-        public void removeNotify() {
-            super.removeNotify();
-            textLoader.cancel(true);
+        protected JComponent build(String resource) {
+            JTextArea textArea = new JTextArea(resource);
+            textArea.setEditable(false);
+            return new JScrollPane(textArea);
         }
 
-        private class TextLoader extends SwingWorker<String, Void> {
+        private class TextLoader extends ResourceLoader {
             @Override
             protected String doInBackground() throws Exception {
                 final int charsRead;
@@ -68,37 +66,6 @@ public class TextPreviewFactory extends MetadataPreviewFactory {
                 }
 
                 return String.valueOf(buffer, 0, charsRead);
-            }
-
-            @Override
-            protected void done() {
-                String text = null;
-                PreviewException exception = null;
-                try {
-                    text = get();
-                } catch (ExecutionException e) {
-                    Throwable cause = e.getCause();
-                    if (cause instanceof PreviewException) {
-                        exception = (PreviewException) cause;
-                    } else {
-                        exception = new PreviewException(e.getCause(), PreviewException.ErrorCode.UNKNOWN_ERROR);
-                    }
-                } catch (Exception e) {
-                    exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
-                }
-
-                if (exception != null) {
-                    JLabel label = (JLabel) getComponent(0);
-                    label.setIcon(ImagePreviewFactory.ImagePreview.ERROR_ICON);
-                    label.setText(exception.getMessage());
-                } else {
-                    getComponent(0).setVisible(false);
-                    JTextArea textArea = new JTextArea(text);
-                    textArea.setEditable(false);
-                    JScrollPane scrollPane = new JScrollPane(textArea);
-                    scrollPane.setPreferredSize(getSize());
-                    add(scrollPane);
-                }
             }
         }
     }
