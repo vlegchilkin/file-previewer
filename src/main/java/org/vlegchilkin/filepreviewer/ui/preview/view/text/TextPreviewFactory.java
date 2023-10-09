@@ -1,14 +1,12 @@
-package org.vlegchilkin.filepreviewer.ui.preview.view;
+package org.vlegchilkin.filepreviewer.ui.preview.view.text;
 
-import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
-import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
+import org.vlegchilkin.filepreviewer.ui.preview.view.MetadataPreviewFactory;
 
 import java.io.File;
 
 /**
  * Preview Builder for text files.
- * Max preview text length is defined in the 'preview.text.max.length' property.
  */
 
 public class TextPreviewFactory extends MetadataPreviewFactory {
@@ -22,7 +20,7 @@ public class TextPreviewFactory extends MetadataPreviewFactory {
         return metadata.mimeType().startsWith("text/") || "application/json".equals(metadata.mimeType());
     }
 
-    public TextPreviewFactory(Metadata metadata) throws PreviewException {
+    public TextPreviewFactory(Metadata metadata) {
         super(metadata);
     }
 

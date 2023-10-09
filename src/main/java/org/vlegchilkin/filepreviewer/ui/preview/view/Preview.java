@@ -1,7 +1,5 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
@@ -9,8 +7,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Objects;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.ExecutionException;
 
 public abstract class Preview<T> extends JPanel {
 
@@ -32,16 +28,23 @@ public abstract class Preview<T> extends JPanel {
         }
     }
 
-    protected ResourceLoader resourceLoader;
+    protected final ResourceLoader<T> resourceLoader;
     protected final File file;
     private final JLabel status;
 
     public Preview(File file) {
         super(new GridBagLayout());
         this.file = file;
-        this.resourceLoader = null;
         this.status = new JLabel(null, StatusIcon.LOADER.getIcon(), JLabel.CENTER);
         add(status);
+        this.resourceLoader = getResourceLoader();
+        if (this.resourceLoader != null) {
+            this.resourceLoader.execute();
+        }
+    }
+
+    public ResourceLoader<T> getResourceLoader() {
+        return null;
     }
 
     @Override
@@ -54,46 +57,19 @@ public abstract class Preview<T> extends JPanel {
 
     protected abstract JComponent build(T resource);
 
-    private void render(JComponent view) {
+    public void render(JComponent view) {
         status.setVisible(false);
         add(view);
         view.setPreferredSize(getSize());
     }
 
-    private void render(PreviewException previewException) {
+    public void render(PreviewException previewException) {
         status.setIcon(StatusIcon.ERROR.getIcon());
         status.setText(previewException.getMessage());
         status.setVisible(true);
     }
 
-    public abstract class ResourceLoader extends SwingWorker<T, Void> {
-        final static Logger log = LoggerFactory.getLogger(Preview.class);
-
-        @Override
-        protected void done() { // todo looks like too heavy
-            PreviewException exception;
-            try {
-                T result = get();
-                render(build(result));
-                return;
-            } catch (ExecutionException e) {
-                log.warn("Error during resource processing", e);
-                Throwable cause = e.getCause();
-                if (cause instanceof PreviewException) {
-                    exception = (PreviewException) cause;
-                } else {
-                    exception = new PreviewException(e.getCause(), PreviewException.ErrorCode.UNKNOWN_ERROR);
-                }
-            } catch (CancellationException | InterruptedException e) {
-                exception = null;
-            } catch (Exception e) {
-                log.error("Critical error during resource processing", e);
-                exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
-            }
-            if (exception != null) {
-                render(exception);
-            }
-        }
+    public File getFile() {
+        return file;
     }
-
 }

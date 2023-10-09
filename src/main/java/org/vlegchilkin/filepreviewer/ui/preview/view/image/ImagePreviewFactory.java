@@ -1,9 +1,7 @@
-package org.vlegchilkin.filepreviewer.ui.preview.view;
+package org.vlegchilkin.filepreviewer.ui.preview.view.image;
 
-import org.apache.commons.io.FileUtils;
-import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
-import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
+import org.vlegchilkin.filepreviewer.ui.preview.view.MetadataPreviewFactory;
 
 import javax.swing.*;
 import java.io.File;
@@ -13,14 +11,14 @@ import java.io.File;
  * File max size is defined in the 'preview.image.max.size' property.
  */
 public class ImagePreviewFactory extends MetadataPreviewFactory {
-    public ImagePreviewFactory(Metadata metadata) throws PreviewException {
+    public ImagePreviewFactory(Metadata metadata) {
         super(metadata);
     }
 
     /**
      * Check if it is possible to show the content as a scaled image.
      */
-    public static boolean isSupported(Metadata metadata) throws PreviewException {
+    public static boolean isSupported(Metadata metadata) {
         if (metadata.mimeType() == null) {
             return false;
         }

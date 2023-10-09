@@ -15,14 +15,9 @@ public class UnsupportedPreviewFactory extends MetadataPreviewFactory {
 
     private final String text;
 
-    public UnsupportedPreviewFactory(File file, Metadata metadata) {
+    public UnsupportedPreviewFactory(Metadata metadata) {
         super(metadata);
-        Boolean isFile = Optional.ofNullable(file).map(File::isFile).orElse(false);
-        if (isFile) {
-            this.text = UnsupportedPreviewFactory.TEXT;
-        } else {
-            this.text = "";
-        }
+        this.text = metadata != null ? UnsupportedPreviewFactory.TEXT : "";
     }
 
     @Override
