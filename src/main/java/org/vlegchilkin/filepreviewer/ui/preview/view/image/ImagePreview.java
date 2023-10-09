@@ -18,7 +18,7 @@ public class ImagePreview extends Preview<Image> {
     }
 
     @Override
-    public ResourceLoader<Image> getResourceLoader() {
+    protected ResourceLoader<Image> createResourceLoader() {
         return new ImageLoader(this);
     }
 
@@ -58,10 +58,6 @@ public class ImagePreview extends Preview<Image> {
     @Override
     protected JComponent build(Image resource) {
         this.image = resource;
-        //todo find a way to update metadata
-//        imagePreviewFactory.getMetadata().information().put(
-//                "image.dimensions", "%d x %d".formatted(image.getWidth(this), image.getHeight(this))
-//        );
         return new JLabel();
     }
 

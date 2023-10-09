@@ -10,7 +10,6 @@ import java.util.concurrent.ExecutionException;
 
 public abstract class ResourceLoader<T> extends SwingWorker<T, Void> {
     final static Logger log = LoggerFactory.getLogger(Preview.class);
-
     protected final Preview<T> owner;
 
     public ResourceLoader(Preview<T> owner) {
@@ -18,12 +17,12 @@ public abstract class ResourceLoader<T> extends SwingWorker<T, Void> {
     }
 
     @Override
-    protected void done() { // todo looks like too heavy
+    protected void done() {
         PreviewException exception;
         try {
             T result = get();
-            owner.render(owner.build(result));
-            return;
+            owner.show(result);
+            exception = null;
         } catch (ExecutionException e) {
             Throwable cause = e.getCause();
             log.warn("Error during resource processing", cause);
@@ -38,8 +37,9 @@ public abstract class ResourceLoader<T> extends SwingWorker<T, Void> {
             log.error("Critical error during resource processing", e);
             exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
         }
+
         if (exception != null) {
-            owner.render(exception);
+            owner.show(exception);
         }
     }
 }

@@ -6,12 +6,13 @@ import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 import org.vlegchilkin.filepreviewer.ui.preview.view.ResourceLoader;
 import org.vlegchilkin.filepreviewer.ui.preview.view.text.TextPreview;
 
+import javax.swing.*;
 import java.io.IOException;
 import java.io.Reader;
 
 public class TextLoader extends ResourceLoader<String> {
     private static final int TEXT_MAX_LENGTH = Integer.parseInt(
-            Main.PROPERTIES.getString("text.loader.text-max-length")
+            Main.PROPERTIES.getString("loader.text.text-max-length")
     );
 
     public TextLoader(TextPreview textPreview) {

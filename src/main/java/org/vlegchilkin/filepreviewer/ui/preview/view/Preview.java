@@ -9,25 +9,6 @@ import java.io.File;
 import java.util.Objects;
 
 public abstract class Preview<T> extends JPanel {
-
-    enum StatusIcon {
-        LOADER("preview.image.loader.icon.file"),
-        ERROR("preview.image.error.icon.file");
-        private final ImageIcon icon;
-
-        StatusIcon(String key) {
-            this.icon = new ImageIcon(
-                    Objects.requireNonNull(
-                            StatusIcon.class.getClassLoader().getResource(Main.PROPERTIES.getString(key))
-                    )
-            );
-        }
-
-        public ImageIcon getIcon() {
-            return icon;
-        }
-    }
-
     protected final ResourceLoader<T> resourceLoader;
     protected final File file;
     private final JLabel status;
@@ -35,15 +16,15 @@ public abstract class Preview<T> extends JPanel {
     public Preview(File file) {
         super(new GridBagLayout());
         this.file = file;
-        this.status = new JLabel(null, StatusIcon.LOADER.getIcon(), JLabel.CENTER);
+        this.status = new JLabel(null, Status.LOADING.getIcon(), JLabel.CENTER);
         add(status);
-        this.resourceLoader = getResourceLoader();
+        this.resourceLoader = createResourceLoader();
         if (this.resourceLoader != null) {
             this.resourceLoader.execute();
         }
     }
 
-    public ResourceLoader<T> getResourceLoader() {
+    protected ResourceLoader<T> createResourceLoader() {
         return null;
     }
 
@@ -57,19 +38,38 @@ public abstract class Preview<T> extends JPanel {
 
     protected abstract JComponent build(T resource);
 
-    public void render(JComponent view) {
-        status.setVisible(false);
+    public void show(T resource) {
+        this.status.setVisible(false);
+        JComponent view = build(resource);
         add(view);
         view.setPreferredSize(getSize());
     }
 
-    public void render(PreviewException previewException) {
-        status.setIcon(StatusIcon.ERROR.getIcon());
-        status.setText(previewException.getMessage());
-        status.setVisible(true);
+    public void show(PreviewException previewException) {
+        this.status.setIcon(Status.ERROR.getIcon());
+        this.status.setText(previewException.getMessage());
+        this.status.setVisible(true);
     }
 
     public File getFile() {
         return file;
+    }
+
+    enum Status {
+        LOADING("status.loading.icon-file"),
+        ERROR("status.error.icon-file");
+        private final ImageIcon icon;
+
+        Status(String iconFile) {
+            this.icon = new ImageIcon(
+                    Objects.requireNonNull(
+                            Status.class.getClassLoader().getResource(Main.PROPERTIES.getString(iconFile))
+                    )
+            );
+        }
+
+        public ImageIcon getIcon() {
+            return icon;
+        }
     }
 }

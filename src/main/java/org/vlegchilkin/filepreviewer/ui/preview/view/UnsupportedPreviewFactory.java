@@ -12,7 +12,6 @@ import java.util.Optional;
  */
 public class UnsupportedPreviewFactory extends MetadataPreviewFactory {
     private static final String TEXT = Main.PROPERTIES.getString("preview.unsupported.text");
-
     private final String text;
 
     public UnsupportedPreviewFactory(Metadata metadata) {

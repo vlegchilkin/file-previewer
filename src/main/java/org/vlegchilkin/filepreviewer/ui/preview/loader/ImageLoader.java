@@ -16,13 +16,13 @@ public class ImageLoader extends ResourceLoader<Image> {
      * If it is just a scroll-through action then the thread will be cancelled before an actual processing.
      */
     private static final int FOLLOW_LAG_MS = Integer.parseInt(
-            Main.PROPERTIES.getString("image.loader.follow-lag-ms")
+            Main.PROPERTIES.getString("loader.image.follow-lag-ms")
     );
     private static final int FOLLOW_LAG_FILE_MIN_SIZE = Integer.parseInt(
-            Main.PROPERTIES.getString("image.loader.follow-lag-file-min-size")
+            Main.PROPERTIES.getString("loader.image.follow-lag-file-min-size")
     );
     private static final int FILE_MAX_SIZE = Integer.parseInt(
-            Main.PROPERTIES.getString("image.loader.file-max-size")
+            Main.PROPERTIES.getString("loader.image.file-max-size")
     );
 
     private final MediaTracker tracker;

@@ -1,8 +1,8 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view.text;
 
+import org.vlegchilkin.filepreviewer.ui.preview.loader.TextLoader;
 import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 import org.vlegchilkin.filepreviewer.ui.preview.view.ResourceLoader;
-import org.vlegchilkin.filepreviewer.ui.preview.loader.TextLoader;
 
 import javax.swing.*;
 import java.io.File;
@@ -14,7 +14,7 @@ public class TextPreview extends Preview<String> {
     }
 
     @Override
-    public ResourceLoader<String> getResourceLoader() {
+    protected ResourceLoader<String> createResourceLoader() {
         return new TextLoader(this);
     }
 
