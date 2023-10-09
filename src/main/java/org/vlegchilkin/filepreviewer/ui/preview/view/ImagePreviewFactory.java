@@ -2,16 +2,17 @@ package org.vlegchilkin.filepreviewer.ui.preview.view;
 
 import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
-import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.IOException;
+import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Preview Builder for images.
@@ -20,100 +21,150 @@ import java.io.IOException;
  */
 public class ImagePreviewFactory extends MetadataPreviewFactory {
     private static final int MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.max.size"));
-    private final ImageIcon image;
+    private final File file;
 
     public ImagePreviewFactory(File file, Metadata metadata) throws PreviewException {
         super(metadata);
-        if (file.length() > ImagePreviewFactory.MAX_SIZE) {
-            throw new PreviewException(
-                    PreviewException.ErrorCode.SIZE_LIMIT, FileUtils.byteCountToDisplaySize(MAX_SIZE)
-            );
-        }
-        this.image = loadImage(file);
-        this.getMetadata().information().put(
-                "image.dimensions", "%d x %d".formatted(image.getIconWidth(), image.getIconHeight())
-        );
+        this.file = file;
     }
 
     /**
      * Check if it is possible to show the content as a scaled image.
      */
-    public static boolean isSupported(Metadata metadata) {
+    public static boolean isSupported(Metadata metadata) throws PreviewException {
         if (metadata.mimeType() == null) {
             return false;
         }
-        return metadata.mimeType().startsWith("image/") && !"image/heic".equals(metadata.mimeType());
+        if (!metadata.mimeType().startsWith("image/") || "image/heic".equals(metadata.mimeType())) {
+            return false;
+        }
+        if (metadata.fileSize() > ImagePreviewFactory.MAX_SIZE) {
+            throw new PreviewException(
+                    PreviewException.ErrorCode.SIZE_LIMIT, FileUtils.byteCountToDisplaySize(MAX_SIZE)
+            );
+        }
+        return true;
     }
 
     @Override
     public JComponent createContentView() {
-        return new ImagePanel(this.image);
+        return new ImagePanel();
     }
 
-    static class ImagePanel extends JPanel {
+    class ImagePanel extends JLabel {
+        final static Logger log = LoggerFactory.getLogger(ImagePanel.class);
         private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
+        public final static ImageIcon LOADER_ICON = new ImageIcon(
+                Objects.requireNonNull(
+                        ImagePanel.class.getClassLoader().getResource(
+                                Main.PROPERTIES.getString("preview.image.loader.icon.file")
+                        )
+                )
+        );
+        public final static ImageIcon ERROR_ICON = new ImageIcon(
+                Objects.requireNonNull(
+                        ImagePanel.class.getClassLoader().getResource(
+                                Main.PROPERTIES.getString("preview.image.error.icon.file")
+                        )
+                )
+        );
+        private final MediaTracker tracker = new MediaTracker(this);
+        private Image image = null;
+        public final SwingWorker<Image, Void> imageLoader = new SwingWorker<>() {
+            @Override
+            protected Image doInBackground() throws Exception {
+                if (getMetadata().fileSize() > 0xFFFFF) {
+                    Thread.sleep(100);
+                }
+                Image image;
+                try (TFileInputStream is = new TFileInputStream(file)) {
+                    byte[] data = is.readAllBytes();
+                    image = Toolkit.getDefaultToolkit().createImage(data);
+                }
+                tracker.addImage(image, 0);
+                boolean completed = tracker.waitForID(0, 0);
+                if (!completed || image.getWidth(null) < 0) {
+                    throw new PreviewException(PreviewException.ErrorCode.UNABLE_TO_LOAD);
+                }
+                return image;
+            }
 
-        private final ImageIcon image;
+            @Override
+            protected void done() {
+                PreviewException exception = null;
+                try {
+                    image = get();
+                    getMetadata().information().put(
+                            "image.dimensions", "%d x %d".formatted(
+                                    image.getWidth(null),
+                                    image.getHeight(null)
+                            )
+                    );
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof PreviewException) {
+                        exception = (PreviewException) cause;
+                    } else {
+                        exception = new PreviewException(e.getCause(), PreviewException.ErrorCode.UNKNOWN_ERROR);
+                    }
+                } catch (Exception e) {
+                    exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
+                }
+                tracker.removeImage(image, 0);
 
-        public ImagePanel(ImageIcon image) {
-            this.image = image;
+                if (exception != null) {
+                    setIcon(ERROR_ICON);
+                    setText(exception.getMessage());
+                } else {
+                    setIcon(null);
+                    setText("");
+                }
 
+                Container parent = getParent();
+                if (parent != null) {
+                    parent.repaint();
+                }
+            }
+        };
+
+        public ImagePanel() {
+            super("", LOADER_ICON, CENTER);
+            imageLoader.execute();
+        }
+
+        @Override
+        public void removeNotify() {
+            super.removeNotify();
+            imageLoader.cancel(true);
+            if (image != null) {
+                image.flush();
+            }
         }
 
         @Override
         protected void paintComponent(Graphics g) {
             super.paintComponent(g);
+            if (this.image == null) {
+                return;
+            }
+
             Rectangle bounds = g.getClipBounds();
             if (bounds.height < ImagePanel.MIN_PIXELS || bounds.width < ImagePanel.MIN_PIXELS) {
                 return;
             }
+            int width = image.getWidth(null), height = image.getHeight(null);
 
-            var scale = (float) Math.max(
-                    image.getIconWidth() / bounds.getWidth(),
-                    image.getIconHeight() / bounds.getHeight()
-            );
-
-            final int width, height;
+            var scale = (float) Math.max(width / bounds.getWidth(), height / bounds.getHeight());
             if (scale > 1) {
-                width = Math.round(image.getIconWidth() / scale);
-                height = Math.round(image.getIconHeight() / scale);
-            } else {
-                width = image.getIconWidth();
-                height = image.getIconHeight();
+                width = Math.round(width / scale);
+                height = Math.round(height / scale);
             }
 
             int x = (bounds.width - width) / 2;
             int y = (bounds.height - height) / 2;
-            g.drawImage(image.getImage(), x, y, width, height, null);
+
+            g.drawImage(image, x, y, width, height, null);
         }
-    }
 
-
-    private static ImageIcon loadImage(File file) throws PreviewException {
-        try (TFileInputStream is = new TFileInputStream(file)) {
-            byte[] data = is.readAllBytes();
-            return buildImage(data);
-        } catch (IOException e) {
-            throw new PreviewException(e, PreviewException.ErrorCode.UNABLE_TO_LOAD);
-        }
-    }
-
-    /**
-     * Build an image using AWT first with fallback to javax.imageio
-     */
-    private static ImageIcon buildImage(byte[] data) throws IOException {
-        ImageIcon imageIcon = new ImageIcon(data);
-        if (imageIcon.getImageLoadStatus() != MediaTracker.COMPLETE || imageIcon.getIconWidth() < 0) {
-            imageIcon = buildImageFallback(data);
-        }
-        return imageIcon;
-    }
-
-    /**
-     * sometimes AWT doesn't build an image because of crc corruption or other reasons
-     * so this is a fallback via slow javax.imageio
-     */
-    private static ImageIcon buildImageFallback(byte[] data) throws IOException {
-        return new ImageIcon(ImageIO.read(new ByteArrayInputStream(data)));
     }
 }

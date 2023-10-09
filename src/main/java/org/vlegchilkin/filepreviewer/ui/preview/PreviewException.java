@@ -25,7 +25,7 @@ public class PreviewException extends Exception {
         super(errorCode.getMessage(args));
     }
 
-    public PreviewException(Exception cause, ErrorCode errorCode, Object... args) {
+    public PreviewException(Throwable cause, ErrorCode errorCode, Object... args) {
         super(errorCode.getMessage(args), cause);
     }
 }

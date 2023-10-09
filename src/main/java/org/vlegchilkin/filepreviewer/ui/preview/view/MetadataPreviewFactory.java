@@ -27,7 +27,7 @@ public class MetadataPreviewFactory implements PreviewFactory {
         return new JLabel();
     }
     public JComponent createMetadataView() {
-        return new MetadataView(getMetadata());
+        return new MetadataView();
     }
 
     /**
@@ -46,8 +46,8 @@ public class MetadataPreviewFactory implements PreviewFactory {
     /**
      * A common view for metadata section.
      */
-    static class MetadataView extends JPanel {
-        public MetadataView(Metadata metadata) {
+    class MetadataView extends JPanel {
+        public MetadataView() {
             super();
             if (metadata == null) {
                 return;
@@ -86,6 +86,11 @@ public class MetadataPreviewFactory implements PreviewFactory {
 
                 add(info);
             }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
         }
     }
 }

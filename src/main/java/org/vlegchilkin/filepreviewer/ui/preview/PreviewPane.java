@@ -34,7 +34,7 @@ public class PreviewPane extends JSplitPane implements PropertyChangeListener {
         switch (evt.getPropertyName()) {
             case JFileChooser.SELECTED_FILE_CHANGED_PROPERTY, JFileChooser.DIRECTORY_CHANGED_PROPERTY -> {
                 File file = (File) evt.getNewValue();
-                PreviewFactory previewFactory = makePreviewFactory(file);
+                var previewFactory = makePreviewFactory(file);
 
                 setTopComponent(previewFactory.createContentView());
                 setBottomComponent(previewFactory.createMetadataView());
@@ -49,7 +49,7 @@ public class PreviewPane extends JSplitPane implements PropertyChangeListener {
         try {
             if (metadata == null) {
                 preview = new MetadataPreviewFactory(null);
-            }else if (ImagePreviewFactory.isSupported(metadata)) {
+            } else if (ImagePreviewFactory.isSupported(metadata)) {
                 preview = new ImagePreviewFactory(file, metadata);
             } else if (TextPreviewFactory.isSupported(metadata)) {
                 preview = new TextPreviewFactory(file, metadata);
