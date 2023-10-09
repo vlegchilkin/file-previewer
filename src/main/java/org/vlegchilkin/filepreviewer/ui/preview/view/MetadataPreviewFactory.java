@@ -87,10 +87,5 @@ public class MetadataPreviewFactory implements PreviewFactory {
                 add(info);
             }
         }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-        }
     }
 }

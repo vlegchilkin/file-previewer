@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 /**
  * Preview Builder for images.
  * File max size is defined in the 'preview.image.max.size' property.
- * uses AWT for loading images with fallback to slow ImageIO in case of awt failure (some rare png crc issues).
  */
 public class ImagePreviewFactory extends MetadataPreviewFactory {
     private static final int MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.max.size"));
@@ -48,34 +47,78 @@ public class ImagePreviewFactory extends MetadataPreviewFactory {
 
     @Override
     public JComponent createContentView() {
-        return new ImagePanel();
+        return new ImagePreview();
     }
 
-    class ImagePanel extends JLabel {
-        final static Logger log = LoggerFactory.getLogger(ImagePanel.class);
+    public class ImagePreview extends JLabel {
         private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
         public final static ImageIcon LOADER_ICON = new ImageIcon(
                 Objects.requireNonNull(
-                        ImagePanel.class.getClassLoader().getResource(
+                        ImagePreview.class.getClassLoader().getResource(
                                 Main.PROPERTIES.getString("preview.image.loader.icon.file")
                         )
                 )
         );
         public final static ImageIcon ERROR_ICON = new ImageIcon(
                 Objects.requireNonNull(
-                        ImagePanel.class.getClassLoader().getResource(
+                        ImagePreview.class.getClassLoader().getResource(
                                 Main.PROPERTIES.getString("preview.image.error.icon.file")
                         )
                 )
         );
-        private final MediaTracker tracker = new MediaTracker(this);
-        private Image image = null;
-        public final SwingWorker<Image, Void> imageLoader = new SwingWorker<>() {
+        private final ImageLoader imageLoader;
+        private Image image;
+
+        public ImagePreview() {
+            super(null, LOADER_ICON, CENTER);
+            this.image = null;
+            this.imageLoader = new ImageLoader();
+            imageLoader.execute();
+        }
+
+        @Override
+        public void removeNotify() {
+            super.removeNotify();
+            imageLoader.cancel(true);
+            if (image != null) {
+                image.flush();
+            }
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            if (this.image == null) {
+                return;
+            }
+
+            Rectangle bounds = g.getClipBounds();
+            if (bounds.height < ImagePreview.MIN_PIXELS || bounds.width < ImagePreview.MIN_PIXELS) {
+                return;
+            }
+            int width = image.getWidth(null), height = image.getHeight(null);
+
+            var scale = (float) Math.max(width / bounds.getWidth(), height / bounds.getHeight());
+            if (scale > 1) {
+                width = Math.round(width / scale);
+                height = Math.round(height / scale);
+            }
+
+            int x = (bounds.width - width) / 2;
+            int y = (bounds.height - height) / 2;
+
+            g.drawImage(image, x, y, width, height, null);
+        }
+
+        private class ImageLoader extends SwingWorker<Image, Void> {
+            private final MediaTracker tracker = new MediaTracker(ImagePreview.this);
+
             @Override
             protected Image doInBackground() throws Exception {
                 if (getMetadata().fileSize() > 0xFFFFF) {
-                    Thread.sleep(100);
+                    Thread.sleep(100); // prevents heavy (IO / create image) operations in case of fast scrolling
                 }
+
                 Image image;
                 try (TFileInputStream is = new TFileInputStream(file)) {
                     byte[] data = is.readAllBytes();
@@ -119,52 +162,7 @@ public class ImagePreviewFactory extends MetadataPreviewFactory {
                     setIcon(null);
                     setText("");
                 }
-
-                Container parent = getParent();
-                if (parent != null) {
-                    parent.repaint();
-                }
-            }
-        };
-
-        public ImagePanel() {
-            super("", LOADER_ICON, CENTER);
-            imageLoader.execute();
-        }
-
-        @Override
-        public void removeNotify() {
-            super.removeNotify();
-            imageLoader.cancel(true);
-            if (image != null) {
-                image.flush();
             }
         }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            if (this.image == null) {
-                return;
-            }
-
-            Rectangle bounds = g.getClipBounds();
-            if (bounds.height < ImagePanel.MIN_PIXELS || bounds.width < ImagePanel.MIN_PIXELS) {
-                return;
-            }
-            int width = image.getWidth(null), height = image.getHeight(null);
-
-            var scale = (float) Math.max(width / bounds.getWidth(), height / bounds.getHeight());
-            if (scale > 1) {
-                width = Math.round(width / scale);
-                height = Math.round(height / scale);
-            }
-
-            int x = (bounds.width - width) / 2;
-            int y = (bounds.height - height) / 2;
-
-            g.drawImage(image, x, y, width, height, null);
-        }
-
     }
 }

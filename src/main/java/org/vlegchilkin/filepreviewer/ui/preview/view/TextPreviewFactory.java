@@ -6,7 +6,9 @@ import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.*;
+import java.util.concurrent.ExecutionException;
 
 /**
  * Preview Builder for text files.
@@ -16,8 +18,7 @@ import java.io.*;
 public class TextPreviewFactory extends MetadataPreviewFactory {
     private static final int MAX_LENGTH = Integer.parseInt(Main.PROPERTIES.getString("preview.text.max.length"));
 
-    private final String text;
-    private final boolean complete;
+    private final File file;
 
     /**
      * Check if it is possible to show the content as a plain text.
@@ -31,31 +32,74 @@ public class TextPreviewFactory extends MetadataPreviewFactory {
 
     public TextPreviewFactory(File file, Metadata metadata) throws PreviewException {
         super(metadata);
-
-        final int charsRead;
-        char[] buffer = new char[(int) Math.min(file.length(), TextPreviewFactory.MAX_LENGTH)];
-        try (Reader reader = new TFileReader(file)) {
-            charsRead = reader.read(buffer);
-            this.complete = reader.read() == -1;
-        } catch (IOException e) {
-            throw new PreviewException(e, PreviewException.ErrorCode.UNABLE_TO_LOAD);
-        }
-
-        this.text = String.valueOf(buffer, 0, charsRead);
-    }
-
-    /**
-     * @deprecated looks like it is useless here, will be removed.
-     */
-    @Deprecated
-    public boolean isComplete() {
-        return complete;
+        this.file = file;
     }
 
     @Override
     public JComponent createContentView() {
-        JTextArea textArea = new JTextArea(this.text);
-        textArea.setEditable(false);
-        return new JScrollPane(textArea);
+        return new TextPreview();
+    }
+
+    class TextPreview extends JPanel {
+        private final TextLoader textLoader;
+
+        public TextPreview() {
+            super(new GridBagLayout());
+            add(new JLabel("", ImagePreviewFactory.ImagePreview.LOADER_ICON, JLabel.CENTER));
+            this.textLoader = new TextLoader();
+            this.textLoader.execute();
+        }
+
+        @Override
+        public void removeNotify() {
+            super.removeNotify();
+            textLoader.cancel(true);
+        }
+
+        private class TextLoader extends SwingWorker<String, Void> {
+            @Override
+            protected String doInBackground() throws Exception {
+                final int charsRead;
+                char[] buffer = new char[(int) Math.min(file.length(), TextPreviewFactory.MAX_LENGTH)];
+                try (Reader reader = new TFileReader(file)) {
+                    charsRead = reader.read(buffer);
+                } catch (IOException e) {
+                    throw new PreviewException(e, PreviewException.ErrorCode.UNABLE_TO_LOAD);
+                }
+
+                return String.valueOf(buffer, 0, charsRead);
+            }
+
+            @Override
+            protected void done() {
+                String text = null;
+                PreviewException exception = null;
+                try {
+                    text = get();
+                } catch (ExecutionException e) {
+                    Throwable cause = e.getCause();
+                    if (cause instanceof PreviewException) {
+                        exception = (PreviewException) cause;
+                    } else {
+                        exception = new PreviewException(e.getCause(), PreviewException.ErrorCode.UNKNOWN_ERROR);
+                    }
+                } catch (Exception e) {
+                    exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
+                }
+
+                if (exception != null) {
+                    JLabel label = (JLabel) getComponent(0);
+                    label.setIcon(ImagePreviewFactory.ImagePreview.ERROR_ICON);
+                    label.setText(exception.getMessage());
+                } else {
+                    getComponent(0).setVisible(false);
+                    JTextArea textArea = new JTextArea(text);
+                    textArea.setEditable(false);
+                    JScrollPane scrollPane = new JScrollPane(textArea);
+                    scrollPane.setPreferredSize(getSize());
+                    add(scrollPane);
+                }
+            }
+        }
     }
 }
