@@ -6,7 +6,6 @@ import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 import org.vlegchilkin.filepreviewer.ui.preview.view.ResourceLoader;
 import org.vlegchilkin.filepreviewer.ui.preview.view.text.TextPreview;
 
-import javax.swing.*;
 import java.io.IOException;
 import java.io.Reader;
 

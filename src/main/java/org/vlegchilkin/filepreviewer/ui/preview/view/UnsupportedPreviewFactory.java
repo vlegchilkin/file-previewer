@@ -5,7 +5,6 @@ import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 
 import javax.swing.*;
 import java.io.File;
-import java.util.Optional;
 
 /**
  * Preview Builder for files with unsupported content types.
