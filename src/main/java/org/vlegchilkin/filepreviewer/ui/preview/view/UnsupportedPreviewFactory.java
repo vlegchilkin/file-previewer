@@ -26,7 +26,7 @@ public class UnsupportedPreviewFactory extends MetadataPreviewFactory {
     }
 
     @Override
-    public JComponent createContentView() {
+    public JComponent createContentView(File file) {
         return new JLabel(this.text, null, SwingConstants.CENTER);
     }
 

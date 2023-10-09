@@ -8,6 +8,7 @@ import org.vlegchilkin.filepreviewer.ui.preview.PreviewFactory;
 
 import javax.swing.*;
 import java.awt.*;
+import java.io.File;
 
 /**
  * Default Preview Builder with common metadata builder and an empty content builder.
@@ -23,7 +24,7 @@ public class MetadataPreviewFactory implements PreviewFactory {
         return metadata;
     }
 
-    public JComponent createContentView() {
+    public JComponent createContentView(File file) {
         return new JLabel();
     }
     public JComponent createMetadataView() {

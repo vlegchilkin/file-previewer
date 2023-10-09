@@ -4,6 +4,7 @@ import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
 import javax.swing.*;
+import java.io.File;
 
 /**
  * Preview Builder for failures.
@@ -17,7 +18,7 @@ public class ErrorPreviewFactory extends MetadataPreviewFactory {
     }
 
     @Override
-    public JComponent createContentView() {
+    public JComponent createContentView(File file) {
         return new JLabel(this.previewException.getMessage(), null, SwingConstants.CENTER);
     }
 
