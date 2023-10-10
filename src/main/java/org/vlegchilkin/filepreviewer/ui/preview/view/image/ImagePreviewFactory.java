@@ -7,8 +7,10 @@ import javax.swing.*;
 import java.io.File;
 
 /**
- * Preview Builder for images.
- * File max size is defined in the 'preview.image.max.size' property.
+ * Preview Factory for images.
+ *
+ * @see ImagePreview as a content
+ * @see org.vlegchilkin.filepreviewer.ui.preview.view.MetadataView as metadata view .
  */
 public class ImagePreviewFactory extends MetadataPreviewFactory {
     public ImagePreviewFactory(Metadata metadata) {

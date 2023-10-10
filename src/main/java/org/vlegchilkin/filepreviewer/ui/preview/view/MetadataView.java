@@ -2,15 +2,16 @@ package org.vlegchilkin.filepreviewer.ui.preview.view;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 
 import javax.swing.*;
 import java.awt.*;
 
 /**
- * A common view for metadata section.
+ * A common view for file metadata section.
  */
-class MetadataView extends JPanel {
+public class MetadataView extends JPanel {
     public MetadataView(Metadata metadata) {
         super();
         if (metadata == null) {
@@ -33,13 +34,13 @@ class MetadataView extends JPanel {
 
         if (!metadata.information().isEmpty()) {
             JPanel info = new JPanel(new GridLayout(0, 2));
-            JLabel infoLabel = new MetadataPreviewFactory.TranslatedJLabel("metadata.information");
+            JLabel infoLabel = new TranslatedJLabel("metadata.information");
             infoLabel.setFont(headerFont);
             info.add(infoLabel);
             info.add(new JLabel(""));
 
             for (var row : metadata.information().entrySet()) {
-                info.add(new MetadataPreviewFactory.TranslatedJLabel(row.getKey(), JLabel.LEFT));
+                info.add(new TranslatedJLabel(row.getKey(), JLabel.LEFT));
                 info.add(new JLabel(row.getValue().toString(), JLabel.RIGHT));
             }
 
@@ -49,6 +50,19 @@ class MetadataView extends JPanel {
             }
 
             add(info);
+        }
+    }
+
+    /**
+     * JLabel that passes the text field via translation.
+     */
+    static class TranslatedJLabel extends JLabel {
+        public TranslatedJLabel(String text) {
+            this(text, LEADING);
+        }
+
+        public TranslatedJLabel(String text, int horizontalAlignment) {
+            super(Main.PROPERTIES.getString(text), horizontalAlignment);
         }
     }
 }

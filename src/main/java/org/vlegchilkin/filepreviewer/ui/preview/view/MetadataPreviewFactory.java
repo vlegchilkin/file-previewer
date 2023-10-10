@@ -1,6 +1,5 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view;
 
-import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.Metadata;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewFactory;
 
@@ -8,7 +7,8 @@ import javax.swing.*;
 import java.io.File;
 
 /**
- * Default Preview Builder with common metadata builder and an empty content builder.
+ * Preview with Metadata Factory.
+ * Shows a common metadata view and an empty content.
  */
 public class MetadataPreviewFactory implements PreviewFactory {
     private final Metadata metadata;
@@ -24,18 +24,4 @@ public class MetadataPreviewFactory implements PreviewFactory {
     public JComponent createMetadataView() {
         return new MetadataView(this.metadata);
     }
-
-    /**
-     * JLabel that passes the text field via translation.
-     */
-    static class TranslatedJLabel extends JLabel {
-        public TranslatedJLabel(String text) {
-            this(text, LEADING);
-        }
-
-        public TranslatedJLabel(String text, int horizontalAlignment) {
-            super(Main.PROPERTIES.getString(text), horizontalAlignment);
-        }
-    }
-
 }

@@ -12,16 +12,26 @@ import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 
+/**
+ * Abstract View for a Preview section.
+ * - runs a SwingWorker background job for loading resource data from file specified.
+ * - calls abstract build method to build a real view for the retrieved data.
+ * - handles all exceptions cases and shows 'an exception view' in case of error.
+ *
+ * @param <T> the resource type that will be loaded via a background task.
+ */
 public abstract class Preview<T> extends JPanel {
-    protected final ResourceLoader resourceLoader;
-    protected final File file;
+    private final ResourceLoader resourceLoader;
+    private final File file;
     private final JLabel status;
 
     public Preview(File file) {
         super(new GridBagLayout());
         this.file = file;
+
         this.status = new JLabel(null, Status.LOADING.getIcon(), JLabel.CENTER);
         add(status);
+
         this.resourceLoader = createResourceLoader();
         if (this.resourceLoader != null) {
             this.resourceLoader.execute();
@@ -77,7 +87,7 @@ public abstract class Preview<T> extends JPanel {
         }
     }
 
-    public abstract class ResourceLoader extends SwingWorker<T, Void> {
+    protected abstract class ResourceLoader extends SwingWorker<T, Void> {
         final static Logger log = LoggerFactory.getLogger(Preview.class);
 
         @Override

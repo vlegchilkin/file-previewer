@@ -6,9 +6,11 @@ import org.vlegchilkin.filepreviewer.ui.preview.view.MetadataPreviewFactory;
 import java.io.File;
 
 /**
- * Preview Builder for text files.
+ * Preview Factory for text files.
+ *
+ * @see TextPreview as a content
+ * @see org.vlegchilkin.filepreviewer.ui.preview.view.MetadataView as metadata view .
  */
-
 public class TextPreviewFactory extends MetadataPreviewFactory {
     /**
      * Check if it is possible to show the content as a plain text.

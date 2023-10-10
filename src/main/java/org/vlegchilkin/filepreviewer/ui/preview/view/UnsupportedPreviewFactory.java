@@ -7,7 +7,7 @@ import javax.swing.*;
 import java.io.File;
 
 /**
- * Preview Builder for files with unsupported content types.
+ * Preview Factory for files with unsupported content types.
  */
 public class UnsupportedPreviewFactory extends MetadataPreviewFactory {
     private static final String TEXT = Main.PROPERTIES.getString("preview.unsupported.text");

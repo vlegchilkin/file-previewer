@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
 
+/**
+ * Preview view for Text files. Shows the content in the read-only JTextArea.
+ * - TEXT_MAX_LENGTH is the preview content limit
+ */
 public class TextPreview extends Preview<String> {
     private static final int TEXT_MAX_LENGTH = Integer.parseInt(
             Main.PROPERTIES.getString("preview.text.text-max-length")

@@ -11,6 +11,12 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 
+/**
+ * Preview view for Image files.
+ * - Uses FOLLOW_LAG_MS/FOLLOW_LAG_FILE_MIN_SIZE pair to skip heavy operations on huge files.
+ * - FILE_MAX_SIZE is the file limit
+ * - doesn't show a preview if the area size smaller than MIN_PIXELS by any dimension
+ */
 public class ImagePreview extends Preview<Image> {
     /**
      * prevents heavy (IO / create image) operations in case of fast scrolling.
