@@ -1,5 +1,7 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 
@@ -7,9 +9,11 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.util.Objects;
+import java.util.concurrent.CancellationException;
+import java.util.concurrent.ExecutionException;
 
 public abstract class Preview<T> extends JPanel {
-    protected final ResourceLoader<T> resourceLoader;
+    protected final ResourceLoader resourceLoader;
     protected final File file;
     private final JLabel status;
 
@@ -24,7 +28,7 @@ public abstract class Preview<T> extends JPanel {
         }
     }
 
-    protected ResourceLoader<T> createResourceLoader() {
+    protected ResourceLoader createResourceLoader() {
         return null;
     }
 
@@ -70,6 +74,37 @@ public abstract class Preview<T> extends JPanel {
 
         public ImageIcon getIcon() {
             return icon;
+        }
+    }
+
+    public abstract class ResourceLoader extends SwingWorker<T, Void> {
+        final static Logger log = LoggerFactory.getLogger(Preview.class);
+
+        @Override
+        protected void done() {
+            PreviewException exception;
+            try {
+                T result = get();
+                show(result);
+                exception = null;
+            } catch (ExecutionException e) {
+                Throwable cause = e.getCause();
+                log.warn("Error during resource processing", cause);
+                if (cause instanceof PreviewException) {
+                    exception = (PreviewException) cause;
+                } else {
+                    exception = new PreviewException(cause, PreviewException.ErrorCode.UNKNOWN_ERROR);
+                }
+            } catch (CancellationException | InterruptedException e) {
+                exception = null;
+            } catch (Exception e) {
+                log.error("Critical error during resource processing", e);
+                exception = new PreviewException(e, PreviewException.ErrorCode.UNKNOWN_ERROR);
+            }
+
+            if (exception != null) {
+                show(exception);
+            }
         }
     }
 }
