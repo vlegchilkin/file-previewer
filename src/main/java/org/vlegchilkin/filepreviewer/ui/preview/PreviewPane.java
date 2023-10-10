@@ -19,7 +19,7 @@ import java.io.File;
  */
 public class PreviewPane extends JSplitPane implements PropertyChangeListener {
     final static Logger log = LoggerFactory.getLogger(PreviewPane.class);
-    private static final int PANE_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("pane.preview.width"));
+    public static final int PANE_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("pane.preview.width"));
 
     public PreviewPane(JFileChooser fileChooser) {
         super(JSplitPane.VERTICAL_SPLIT);

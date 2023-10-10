@@ -4,6 +4,7 @@ import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
+import org.vlegchilkin.filepreviewer.ui.preview.PreviewPane;
 import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 
 import javax.swing.*;
@@ -48,7 +49,9 @@ public class ImagePreview extends Preview<Image> {
 
                 try (TFileInputStream is = new TFileInputStream(getFile())) {
                     byte[] data = is.readAllBytes();
-                    this.image = Toolkit.getDefaultToolkit().createImage(data);
+                    this.image = Toolkit.getDefaultToolkit()
+                            .createImage(data)
+                            .getScaledInstance(PreviewPane.PANE_WIDTH * 2, -1, Image.SCALE_AREA_AVERAGING);
                 }
                 tracker.addImage(this.image, 0);
                 boolean completed = this.tracker.waitForID(0, 0);
