@@ -16,18 +16,10 @@ public class ImagePreview extends Preview<Image> {
      * waits for FOLLOW_LAG_MS if the file size exceeds FOLLOW_LAG_FILE_MIN_SIZE.
      * If it is just a scroll-through action then the thread will be cancelled before an actual processing.
      */
-    private static final int FOLLOW_LAG_MS = Integer.parseInt(
-            Main.PROPERTIES.getString("preview.image.follow-lag-ms")
-    );
-    private static final int FOLLOW_LAG_FILE_MIN_SIZE = Integer.parseInt(
-            Main.PROPERTIES.getString("preview.image.follow-lag-file-min-size")
-    );
-    private static final int FILE_MAX_SIZE = Integer.parseInt(
-            Main.PROPERTIES.getString("preview.image.file-max-size")
-    );
-    private static final int MIN_PIXELS = Integer.parseInt(
-            Main.PROPERTIES.getString("preview.image.min.pixels")
-    );
+    private static final int FOLLOW_LAG_MS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-ms"));
+    private static final int FOLLOW_LAG_FILE_MIN_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-file-min-size"));
+    private static final int FILE_MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.file-max-size"));
+    private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
     private Image image;
 
     public ImagePreview(File file) {
@@ -43,32 +35,33 @@ public class ImagePreview extends Preview<Image> {
 
             @Override
             protected Image doInBackground() throws Exception {
-                if (getFile().length() > FILE_MAX_SIZE) {
+                if (getFile().length() > ImagePreview.FILE_MAX_SIZE) {
                     throw new PreviewException(
-                            PreviewException.ErrorCode.SIZE_LIMIT, FileUtils.byteCountToDisplaySize(FILE_MAX_SIZE)
+                            PreviewException.ErrorCode.SIZE_LIMIT,
+                            FileUtils.byteCountToDisplaySize(ImagePreview.FILE_MAX_SIZE)
                     );
                 }
 
-                if (getFile().length() > FOLLOW_LAG_FILE_MIN_SIZE) {
-                    Thread.sleep(FOLLOW_LAG_MS);
+                if (getFile().length() > ImagePreview.FOLLOW_LAG_FILE_MIN_SIZE) {
+                    Thread.sleep(ImagePreview.FOLLOW_LAG_MS);
                 }
 
                 try (TFileInputStream is = new TFileInputStream(getFile())) {
                     byte[] data = is.readAllBytes();
-                    image = Toolkit.getDefaultToolkit().createImage(data);
+                    this.image = Toolkit.getDefaultToolkit().createImage(data);
                 }
-                tracker.addImage(image, 0);
-                boolean completed = tracker.waitForID(0, 0);
-                if (!completed || image.getWidth(null) < 0) {
+                tracker.addImage(this.image, 0);
+                boolean completed = this.tracker.waitForID(0, 0);
+                if (!completed || this.image.getWidth(null) < 0) {
                     throw new PreviewException(PreviewException.ErrorCode.UNABLE_TO_LOAD);
                 }
-                return image;
+                return this.image;
             }
 
             @Override
             protected void done() {
                 super.done();
-                tracker.removeImage(image, 0);
+                this.tracker.removeImage(this.image, 0);
             }
         };
     }
@@ -76,8 +69,8 @@ public class ImagePreview extends Preview<Image> {
     @Override
     public void removeNotify() {
         super.removeNotify();
-        if (image != null) {
-            image.flush();
+        if (this.image != null) {
+            this.image.flush();
         }
     }
 
@@ -92,7 +85,7 @@ public class ImagePreview extends Preview<Image> {
         if (bounds.height < ImagePreview.MIN_PIXELS || bounds.width < ImagePreview.MIN_PIXELS) {
             return;
         }
-        int width = image.getWidth(null), height = image.getHeight(null);
+        int width = this.image.getWidth(null), height = this.image.getHeight(null);
 
         var scale = (float) Math.max(width / bounds.getWidth(), height / bounds.getHeight());
         if (scale > 1) {
@@ -103,7 +96,7 @@ public class ImagePreview extends Preview<Image> {
         int x = (bounds.width - width) / 2;
         int y = (bounds.height - height) / 2;
 
-        g.drawImage(image, x, y, width, height, null);
+        g.drawImage(this.image, x, y, width, height, null);
     }
 
     @Override

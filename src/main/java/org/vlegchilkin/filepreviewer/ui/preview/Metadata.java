@@ -63,7 +63,7 @@ public record Metadata(String fileName, long fileSize, String mimeType, Informat
         public void putIfDefined(String key, FileTime fileTime) {
             if (fileTime.toMillis() > 0) {
                 LocalDateTime localDateTime = fileTime.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
-                put(key, localDateTime.format(FILETIME_FORMATTER));
+                put(key, localDateTime.format(Information.FILETIME_FORMATTER));
             }
         }
     }

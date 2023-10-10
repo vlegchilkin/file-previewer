@@ -25,7 +25,7 @@ public class TextPreview extends Preview<String> {
             @Override
             protected String doInBackground() throws Exception {
                 final int charsRead;
-                char[] buffer = new char[(int) Math.min(getFile().length(), TEXT_MAX_LENGTH)];
+                char[] buffer = new char[(int) Math.min(getFile().length(), TextPreview.TEXT_MAX_LENGTH)];
                 try (Reader reader = new TFileReader(getFile())) {
                     charsRead = reader.read(buffer);
                 } catch (IOException e) {
