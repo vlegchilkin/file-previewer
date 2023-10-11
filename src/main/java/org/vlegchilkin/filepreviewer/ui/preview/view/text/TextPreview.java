@@ -1,6 +1,6 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view.text;
 
-import net.java.truevfs.access.TFileReader;
+import org.apache.tika.parser.txt.CharsetDetector;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
@@ -8,15 +8,17 @@ import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 import javax.swing.*;
 import java.io.File;
 import java.io.IOException;
-import java.io.Reader;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.util.Arrays;
 
 /**
  * Preview view for Text files. Shows the content in the read-only JTextArea.
  * - TEXT_MAX_LENGTH is the preview content limit
  */
 public class TextPreview extends Preview<String> {
-    private static final int TEXT_MAX_LENGTH = Integer.parseInt(
-            Main.PROPERTIES.getString("preview.text.text-max-length")
+    private static final int BUFFER_MAX_LENGTH = Integer.parseInt(
+            Main.PROPERTIES.getString("preview.text.buffer-max-length")
     );
 
     public TextPreview(File file) {
@@ -28,15 +30,21 @@ public class TextPreview extends Preview<String> {
         return new ResourceLoader() {
             @Override
             protected String doInBackground() throws Exception {
-                final int charsRead;
-                char[] buffer = new char[(int) Math.min(getFile().length(), TextPreview.TEXT_MAX_LENGTH)];
-                try (Reader reader = new TFileReader(getFile())) {
-                    charsRead = reader.read(buffer);
+                byte[] buffer = new byte[BUFFER_MAX_LENGTH];
+                final String result;
+                try (InputStream stream = Files.newInputStream(getFile().toPath())) {
+                    int read = stream.read(buffer);
+                    if (read == -1) {
+                        result = "";
+                    } else {
+                        var detector = new CharsetDetector();
+                        byte[] data = Arrays.copyOf(buffer, read);
+                        result = detector.setText(data).detect().getString();
+                    }
                 } catch (IOException e) {
                     throw new PreviewException(e, PreviewException.ErrorCode.UNABLE_TO_LOAD);
                 }
-
-                return String.valueOf(buffer, 0, charsRead);
+                return result;
             }
         };
     }

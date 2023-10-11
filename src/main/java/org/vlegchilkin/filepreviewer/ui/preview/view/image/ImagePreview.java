@@ -1,6 +1,5 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view.image;
 
-import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
@@ -10,6 +9,8 @@ import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.InputStream;
+import java.nio.file.Files;
 
 /**
  * Preview view for Image files.
@@ -53,7 +54,7 @@ public class ImagePreview extends Preview<Image> {
                     Thread.sleep(ImagePreview.FOLLOW_LAG_MS);
                 }
 
-                try (TFileInputStream is = new TFileInputStream(getFile())) {
+                try (InputStream is = Files.newInputStream(getFile().toPath())) {
                     byte[] data = is.readAllBytes();
                     this.image = Toolkit.getDefaultToolkit()
                             .createImage(data)
