@@ -6,6 +6,12 @@ import org.slf4j.LoggerFactory;
 import javax.swing.filechooser.FileSystemView;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+import java.nio.channels.FileChannel;
+import java.nio.channels.spi.AbstractInterruptibleChannel;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -27,6 +33,11 @@ public class ZFileSystemView extends DecoratingFileSystemView {
         if (dir != null && dir.toPath().getFileSystem().equals(this.zipFileSystem)) {
             return;
         }
+        if (dir instanceof ZFile && ((ZFile) dir).isZip() && this.zipFileSystem != null) {
+            if (dir.toPath().toString().equals(this.zipFileSystem.toString())) {
+                return;
+            }
+        }
 
         if (this.zipFileSystem != null) {
             try {
@@ -40,10 +51,37 @@ public class ZFileSystemView extends DecoratingFileSystemView {
 
         try {
             if (dir instanceof ZFile && ((ZFile) dir).isZip()) {
-                this.zipFileSystem = FileSystems.newFileSystem(dir.toPath());
+                this.zipFileSystem = patched(dir.toPath());
+
             }
-        } catch (IOException e) {
-            log.debug("can't open ZipFileSystem", e);
+        } catch (Exception e) {
+            log.error("can't open ZipFileSystem", e);
+        }
+    }
+
+    private static FileSystem patched(Path path) throws Exception {
+        FileSystem fs = FileSystems.newFileSystem(path);
+        Field chField = fs.getClass().getDeclaredField("ch");
+        chField.setAccessible(true);
+        FileChannel ch = (FileChannel)chField.get(fs);
+        doNotCloseOnInterrupt(ch);
+        return fs;
+    }
+
+    private static void doNotCloseOnInterrupt(FileChannel fc) throws Exception {
+        Field field = AbstractInterruptibleChannel.class.getDeclaredField("interruptor");
+        Class<?> interruptibleClass = field.getType();
+        field.setAccessible(true);
+        field.set(fc, Proxy.newProxyInstance(
+                interruptibleClass.getClassLoader(),
+                new Class[] { interruptibleClass },
+                new InterruptibleInvocationHandler()));
+    }
+
+    static class InterruptibleInvocationHandler implements InvocationHandler {
+        @Override
+        public Object invoke(Object proxy, Method method, Object[] args) {
+            return null;
         }
     }
 
