@@ -13,10 +13,10 @@ import java.awt.event.WindowEvent;
  * Contains only FileBrowser component, starts at the middle of a screen with a preferred size 800 x 500.
  */
 public class MainFrame extends JFrame implements ActionListener {
-    private static final int DEFAULT_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.width"));
-    private static final int DEFAULT_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default.height"));
-    private static final int MIN_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.min.width"));
-    private static final int MIN_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.min.height"));
+    private static final int DEFAULT_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default-width"));
+    private static final int DEFAULT_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.default-height"));
+    private static final int MIN_WIDTH = Integer.parseInt(Main.PROPERTIES.getString("mainframe.min-width"));
+    private static final int MIN_HEIGHT = Integer.parseInt(Main.PROPERTIES.getString("mainframe.min-height"));
     private static final String TITLE = Main.PROPERTIES.getString("mainframe.title");
 
 
@@ -28,6 +28,7 @@ public class MainFrame extends JFrame implements ActionListener {
 
         FileBrowser fb = (FileBrowser) add(new FileBrowser());
         fb.addActionListener(this);
+        addWindowListener(fb.buildWindowListener());
 
         pack();
         setLocationRelativeTo(null);

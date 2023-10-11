@@ -1,6 +1,5 @@
 package org.vlegchilkin.filepreviewer.ui.preview.view.image;
 
-import net.java.truevfs.access.TFileInputStream;
 import org.apache.commons.io.FileUtils;
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
@@ -26,7 +25,7 @@ public class ImagePreview extends Preview<Image> {
     private static final int FOLLOW_LAG_MS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-ms"));
     private static final int FOLLOW_LAG_FILE_MIN_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-file-min-size"));
     private static final int FILE_MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.file-max-size"));
-    private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
+    private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min-pixels"));
     private Image image;
 
     public ImagePreview(File file) {
@@ -53,13 +52,13 @@ public class ImagePreview extends Preview<Image> {
                     Thread.sleep(ImagePreview.FOLLOW_LAG_MS);
                 }
 
-                try (TFileInputStream is = new TFileInputStream(getFile())) {
-                    byte[] data = is.readAllBytes();
-                    this.image = Toolkit.getDefaultToolkit()
-                            .createImage(data)
-                            .getScaledInstance(PreviewPane.PANE_WIDTH * 2, -1, Image.SCALE_AREA_AVERAGING);
-                }
+                byte[] data = readBytes(-1);
+                this.image = Toolkit.getDefaultToolkit()
+                        .createImage(data)
+                        .getScaledInstance(PreviewPane.PANE_WIDTH * 2, -1, Image.SCALE_AREA_AVERAGING);
+
                 tracker.addImage(this.image, 0);
+
                 boolean completed = this.tracker.waitForID(0, 0);
                 if (!completed || this.image.getWidth(null) < 0) {
                     throw new PreviewException(PreviewException.ErrorCode.UNABLE_TO_LOAD);
