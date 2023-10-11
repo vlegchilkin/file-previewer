@@ -28,6 +28,12 @@ public class ZFileSystemView extends DecoratingFileSystemView {
             return;
         }
 
+        if (dir instanceof ZFile && ((ZFile) dir).isZip() && this.zipFileSystem != null) {
+            if (dir.toPath().toString().equals(this.zipFileSystem.toString())) {
+                return;
+            }
+        }
+
         if (this.zipFileSystem != null) {
             try {
                 this.zipFileSystem.close();
