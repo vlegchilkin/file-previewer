@@ -9,8 +9,6 @@ import org.vlegchilkin.filepreviewer.ui.preview.view.Preview;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.InputStream;
-import java.nio.file.Files;
 
 /**
  * Preview view for Image files.
@@ -54,13 +52,13 @@ public class ImagePreview extends Preview<Image> {
                     Thread.sleep(ImagePreview.FOLLOW_LAG_MS);
                 }
 
-                try (InputStream is = Files.newInputStream(getFile().toPath())) {
-                    byte[] data = is.readAllBytes();
-                    this.image = Toolkit.getDefaultToolkit()
-                            .createImage(data)
-                            .getScaledInstance(PreviewPane.PANE_WIDTH * 2, -1, Image.SCALE_AREA_AVERAGING);
-                }
+                byte[] data = readBytes(-1);
+                this.image = Toolkit.getDefaultToolkit()
+                        .createImage(data)
+                        .getScaledInstance(PreviewPane.PANE_WIDTH * 2, -1, Image.SCALE_AREA_AVERAGING);
+
                 tracker.addImage(this.image, 0);
+
                 boolean completed = this.tracker.waitForID(0, 0);
                 if (!completed || this.image.getWidth(null) < 0) {
                     throw new PreviewException(PreviewException.ErrorCode.UNABLE_TO_LOAD);

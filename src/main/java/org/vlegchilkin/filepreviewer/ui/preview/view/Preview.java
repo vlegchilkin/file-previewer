@@ -8,6 +8,13 @@ import org.vlegchilkin.filepreviewer.ui.preview.PreviewException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -89,6 +96,40 @@ public abstract class Preview<T> extends JPanel {
 
     protected abstract class ResourceLoader extends SwingWorker<T, Void> {
         final static Logger log = LoggerFactory.getLogger(Preview.class);
+
+        /**
+         * creates a new FileSystem object Zip archives, cause interruption of the thread kills original
+         * FileChannel object.
+         * So in case of a thread interruption the ZipFileSystem becomes closed.
+         */
+        protected byte[] readBytes(int len) throws IOException {
+            Path path = getFile().toPath();
+            if (path.getFileSystem().equals(FileSystems.getDefault())) {
+                return readBytes(path, len);
+            }
+
+            try (FileSystem fs = FileSystems.newFileSystem(Path.of(path.getFileSystem().toString()))) {
+                return readBytes(fs.getPath(path.toString()), len);
+            }
+        }
+
+        private byte[] readBytes(Path path, int len) throws IOException {
+            try (InputStream is = Files.newInputStream(path)) {
+                if (len < 0) {
+                    return is.readAllBytes();
+                }
+
+                byte[] buffer = new byte[len];
+                int read = is.read(buffer);
+                final byte[] result;
+                if (read == -1) {
+                    result = new byte[0];
+                } else {
+                    result = Arrays.copyOf(buffer, read);
+                }
+                return result;
+            }
+        }
 
         @Override
         protected void done() {

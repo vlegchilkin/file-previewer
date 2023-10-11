@@ -71,7 +71,7 @@ public class ZFileSystemView extends DecoratingFileSystemView {
     public ZFile[] getFiles(File dir, boolean useFileHiding) {
         final ZFile[] files;
         if (this.zipFileSystem != null) {
-            files = getZFSFiles(dir);
+            files = getZipFSFiles(dir);
         } else {
             files = getSystemFSFiles(dir, useFileHiding);
         }
@@ -83,10 +83,10 @@ public class ZFileSystemView extends DecoratingFileSystemView {
      */
     private ZFile[] getSystemFSFiles(File dir, boolean useFileHiding) {
         File[] files = super.getFiles(dir, useFileHiding);
-        return Arrays.stream(files).limit(maxFiles).map(file -> ZFile.nonPacked(dir, file)).toArray(ZFile[]::new);
+        return Arrays.stream(files).limit(maxFiles).map(file -> ZFile.nonZipped(dir, file)).toArray(ZFile[]::new);
     }
 
-    private ZFile[] getZFSFiles(File dir) {
+    private ZFile[] getZipFSFiles(File dir) {
         final Path path;
         if (dir instanceof ZFile && ((ZFile) dir).isZip()) {
             path = this.zipFileSystem.getPath("/");
@@ -96,7 +96,7 @@ public class ZFileSystemView extends DecoratingFileSystemView {
 
         ZFile[] files;
         try (Stream<Path> stream = Files.list(path)) {
-            files = stream.limit(this.maxFiles).map(p -> ZFile.packed(dir, p)).toArray(ZFile[]::new);
+            files = stream.limit(this.maxFiles).map(p -> ZFile.zipped(dir, p)).toArray(ZFile[]::new);
         } catch (IOException e) {
             files = new ZFile[0];
         }

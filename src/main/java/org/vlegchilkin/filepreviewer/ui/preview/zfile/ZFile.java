@@ -15,7 +15,9 @@ public class ZFile extends File {
     private final File parent;
     private final boolean exists;
 
-    private ZFile(Path path, boolean directory, boolean file, long length, boolean zip, File parent, boolean exists) {
+    private final long lastModified;
+
+    private ZFile(Path path, boolean directory, boolean file, long length, boolean zip, File parent, boolean exists, long lastModified) {
         super(path.toString());
         this.path = path;
         this.directory = directory;
@@ -24,24 +26,43 @@ public class ZFile extends File {
         this.zip = zip;
         this.parent = parent;
         this.exists = exists;
+        this.lastModified = lastModified;
     }
 
 
-    public static ZFile packed(File parent, Path zipPath) {
-        long length;
+    public static ZFile zipped(File parent, Path zipPath) {
+        long length, lastModified;
+
         try {
             length = Files.size(zipPath);
+            lastModified = Files.getLastModifiedTime(zipPath).toMillis();
         } catch (IOException e) {
-            length = 0;
+            length = lastModified = 0;
         }
-        return new ZFile(zipPath, Files.isDirectory(zipPath), Files.isRegularFile(zipPath), length, false, parent, true);
+        return new ZFile(
+                zipPath,
+                Files.isDirectory(zipPath),
+                Files.isRegularFile(zipPath),
+                length, false, parent, true,
+                lastModified
+        );
     }
 
-    public static ZFile nonPacked(File parent, File file) {
+    public static ZFile nonZipped(File parent, File file) {
         boolean zip = file.isFile() && file.getName().endsWith(".zip");
-        return new ZFile(file.toPath(), zip || file.isDirectory(), !zip && file.isFile(), file.length(), zip, parent, file.exists());
+        return new ZFile(
+                file.toPath(),
+                zip || file.isDirectory(),
+                !zip && file.isFile(),
+                file.length(), zip, parent, file.exists(),
+                file.lastModified()
+        );
     }
 
+    @Override
+    public long lastModified() {
+        return this.lastModified;
+    }
     @Override
     public boolean exists() {
         return exists;
