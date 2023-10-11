@@ -27,7 +27,7 @@ public class ImagePreview extends Preview<Image> {
     private static final int FOLLOW_LAG_MS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-ms"));
     private static final int FOLLOW_LAG_FILE_MIN_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.follow-lag-file-min-size"));
     private static final int FILE_MAX_SIZE = Integer.parseInt(Main.PROPERTIES.getString("preview.image.file-max-size"));
-    private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min.pixels"));
+    private static final int MIN_PIXELS = Integer.parseInt(Main.PROPERTIES.getString("preview.image.min-pixels"));
     private Image image;
 
     public ImagePreview(File file) {

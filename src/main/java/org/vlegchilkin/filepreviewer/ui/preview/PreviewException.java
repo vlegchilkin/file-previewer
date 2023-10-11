@@ -7,9 +7,9 @@ import org.vlegchilkin.filepreviewer.Main;
  */
 public class PreviewException extends Exception {
     public enum ErrorCode {
-        SIZE_LIMIT("preview.exception.size.limit"),
-        UNABLE_TO_LOAD("preview.exception.unable.to.load"),
-        UNKNOWN_ERROR("preview.exception.unknown.error");
+        SIZE_LIMIT("preview.exception.size-limit"),
+        UNABLE_TO_LOAD("preview.exception.unable-to-load"),
+        UNKNOWN_ERROR("preview.exception.unknown-error");
         private final String messageTemplate;
 
         ErrorCode(String alias) {

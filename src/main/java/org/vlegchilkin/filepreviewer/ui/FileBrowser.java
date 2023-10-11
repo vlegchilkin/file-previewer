@@ -2,11 +2,16 @@ package org.vlegchilkin.filepreviewer.ui;
 
 import org.vlegchilkin.filepreviewer.Main;
 import org.vlegchilkin.filepreviewer.ui.preview.PreviewPane;
+import org.vlegchilkin.filepreviewer.ui.preview.zfile.ZFile;
+import org.vlegchilkin.filepreviewer.ui.preview.zfile.ZFileSystemView;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileView;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 import java.util.*;
 import java.util.List;
@@ -17,12 +22,15 @@ import java.util.List;
  * Uses <a href="http://truevfs.net">TrueVFS</a> library to support walk through archive files (zip)
  */
 public class FileBrowser extends JFileChooser {
-    private static final String ARCHIVE_ICON_FILE = Main.PROPERTIES.getString("filebrowser.archive.icon.file");
+    private static final String ARCHIVE_ICON_FILE = Main.PROPERTIES.getString("filebrowser.archive-icon-file");
+    private static final int MAX_FILES_ON_VIEW = Integer.parseInt(
+            Main.PROPERTIES.getString("filebrowser.max-files-on-view")
+    );
     public static final java.util.List<String> FILTER_IMAGE_EXTENSIONS = List.of(
-            Main.PROPERTIES.getString("filebrowser.filter.image.extensions").split(",")
+            Main.PROPERTIES.getString("filebrowser.filter-image-extensions").split(",")
     );
     public static final java.util.List<String> FILTER_TEXT_EXTENSIONS = List.of(
-            Main.PROPERTIES.getString("filebrowser.filter.text.extensions").split(",")
+            Main.PROPERTIES.getString("filebrowser.filter-text-extensions").split(",")
     );
 
     static {
@@ -35,7 +43,7 @@ public class FileBrowser extends JFileChooser {
     }};
 
     public FileBrowser() {
-        super(new ZFileSystemView());
+        super(new ZFileSystemView(FileBrowser.MAX_FILES_ON_VIEW));
         setFileView(new ZipFoldersFileView());
         setAccessory(new PreviewPane(this));
         setControlButtonsAreShown(false);
@@ -62,12 +70,21 @@ public class FileBrowser extends JFileChooser {
         return false;
     }
 
+    public ZFileSystemView getFileSystemView() {
+        return (ZFileSystemView) super.getFileSystemView();
+    }
+
+
     @Override
     public void setCurrentDirectory(File dir) {
-        ((ZFileSystemView)getFileSystemView()).syncZFS(dir);
+        getFileSystemView().syncZFS(dir);
         super.setCurrentDirectory(dir);
     }
 
+    public WindowListener buildWindowListener() {
+        return new FileBrowserWindowListener();
+
+    }
     static class ZipFoldersFileView extends FileView {
 
         public final static Icon archiveIcon = new ImageIcon(
@@ -82,6 +99,12 @@ public class FileBrowser extends JFileChooser {
                 return ZipFoldersFileView.archiveIcon;
             }
             return super.getIcon(f);
+        }
+    }
+    class FileBrowserWindowListener extends WindowAdapter {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            getFileSystemView().syncZFS(null);
         }
     }
 }

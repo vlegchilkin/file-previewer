@@ -1,4 +1,4 @@
-package org.vlegchilkin.filepreviewer.ui;
+package org.vlegchilkin.filepreviewer.ui.preview.zfile;
 
 import java.io.File;
 import java.io.IOException;
